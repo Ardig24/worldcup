@@ -1,14 +1,15 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap");
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-display: "Fraunces", Georgia, serif;
   --font-sans: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-score: "Bebas Neue", "Inter", sans-serif;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -35,59 +36,57 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
   --color-pitch: var(--pitch);
-  --color-emerald-glow: var(--emerald-glow);
-  --color-gold: var(--gold);
-  --color-crimson: var(--crimson);
-  --color-azure: var(--azure);
+  --color-pitch-deep: var(--pitch-deep);
+  --color-sunshine: var(--sunshine);
+  --color-tomato: var(--tomato);
+  --color-chalk: var(--chalk);
 }
 
 :root {
-  --radius: 1rem;
+  --radius: 0.5rem;
 
-  /* Stadium-night palette inspired by FIFA 2026 host trio (USA red, Mexico green, Canada... energy) */
-  --background: oklch(0.16 0.02 160);
-  --foreground: oklch(0.97 0.01 120);
+  /* Editorial football-programme palette */
+  --paper: oklch(0.965 0.012 85);              /* warm cream paper */
+  --chalk: oklch(0.985 0.005 90);
+  --ink: oklch(0.18 0.02 70);                  /* warm charcoal */
+  --pitch: oklch(0.42 0.13 145);               /* classic kit green */
+  --pitch-deep: oklch(0.30 0.10 145);
+  --sunshine: oklch(0.85 0.16 85);             /* matchday yellow */
+  --tomato: oklch(0.58 0.21 28);               /* classic red */
 
-  --card: oklch(0.20 0.025 165);
-  --card-foreground: oklch(0.97 0.01 120);
-  --popover: oklch(0.20 0.025 165);
-  --popover-foreground: oklch(0.97 0.01 120);
+  --background: var(--paper);
+  --foreground: var(--ink);
 
-  --primary: oklch(0.78 0.18 152);          /* emerald glow */
-  --primary-foreground: oklch(0.15 0.03 160);
-  --secondary: oklch(0.26 0.03 165);
-  --secondary-foreground: oklch(0.97 0.01 120);
+  --card: var(--chalk);
+  --card-foreground: var(--ink);
+  --popover: var(--chalk);
+  --popover-foreground: var(--ink);
 
-  --muted: oklch(0.24 0.025 165);
-  --muted-foreground: oklch(0.70 0.02 150);
-  --accent: oklch(0.85 0.16 90);            /* gold */
-  --accent-foreground: oklch(0.15 0.03 160);
+  --primary: var(--pitch-deep);
+  --primary-foreground: var(--chalk);
+  --secondary: oklch(0.92 0.02 80);
+  --secondary-foreground: var(--ink);
 
-  --destructive: oklch(0.62 0.22 25);
-  --destructive-foreground: oklch(0.97 0.01 120);
+  --muted: oklch(0.92 0.015 80);
+  --muted-foreground: oklch(0.45 0.025 70);
+  --accent: var(--tomato);
+  --accent-foreground: var(--chalk);
 
-  --border: oklch(0.30 0.03 160 / 60%);
-  --input: oklch(0.28 0.03 160);
-  --ring: oklch(0.78 0.18 152);
+  --destructive: var(--tomato);
+  --destructive-foreground: var(--chalk);
 
-  --pitch: oklch(0.32 0.10 152);
-  --emerald-glow: oklch(0.78 0.18 152);
-  --gold: oklch(0.85 0.16 90);
-  --crimson: oklch(0.62 0.22 25);
-  --azure: oklch(0.62 0.18 245);
+  --border: oklch(0.18 0.02 70 / 0.12);
+  --input: oklch(0.18 0.02 70 / 0.15);
+  --ring: var(--pitch);
 
-  --gradient-pitch: radial-gradient(ellipse at top, oklch(0.32 0.10 152 / 0.6), transparent 60%);
-  --gradient-hero: linear-gradient(135deg, oklch(0.78 0.18 152) 0%, oklch(0.62 0.18 245) 50%, oklch(0.62 0.22 25) 100%);
-  --gradient-gold: linear-gradient(135deg, oklch(0.85 0.16 90), oklch(0.75 0.20 60));
-  --gradient-card: linear-gradient(180deg, oklch(0.22 0.03 165 / 0.9), oklch(0.18 0.025 165 / 0.6));
-
-  --shadow-glow: 0 0 60px -10px oklch(0.78 0.18 152 / 0.4);
-  --shadow-card: 0 20px 60px -20px oklch(0.05 0.02 160 / 0.6);
-  --shadow-gold: 0 10px 40px -10px oklch(0.85 0.16 90 / 0.5);
+  --shadow-paper: 0 1px 0 oklch(0.18 0.02 70 / 0.04), 0 12px 28px -16px oklch(0.18 0.02 70 / 0.18);
+  --shadow-stamp: 0 2px 0 var(--ink);
 }
 
-.dark { color-scheme: dark; }
+.dark { color-scheme: light; }
 
 @layer base {
   * { border-color: var(--color-border); }
@@ -95,41 +94,64 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    /* subtle paper grain */
     background-image:
-      radial-gradient(ellipse 80% 50% at 50% -10%, oklch(0.78 0.18 152 / 0.15), transparent),
-      radial-gradient(ellipse 60% 40% at 100% 50%, oklch(0.62 0.18 245 / 0.08), transparent);
-    background-attachment: fixed;
+      radial-gradient(oklch(0.18 0.02 70 / 0.025) 1px, transparent 1px),
+      radial-gradient(oklch(0.18 0.02 70 / 0.02) 1px, transparent 1px);
+    background-size: 3px 3px, 7px 7px;
+    background-position: 0 0, 1px 2px;
     min-height: 100vh;
   }
-  h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; }
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.025em;
+    font-weight: 700;
+  }
+  .font-score { font-family: var(--font-score); letter-spacing: 0.01em; }
   .font-mono-num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .font-display { font-family: var(--font-display); }
 }
 
 @layer utilities {
-  .text-gradient-hero {
-    background: var(--gradient-hero);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-  .bg-gradient-card { background: var(--gradient-card); }
-  .bg-gradient-gold { background: var(--gradient-gold); }
-  .shadow-glow { box-shadow: var(--shadow-glow); }
-  .shadow-card { box-shadow: var(--shadow-card); }
-  .shadow-gold { box-shadow: var(--shadow-gold); }
-  .pitch-lines {
+  /* hand-drawn pitch markings overlay */
+  .pitch-bg {
+    background-color: var(--pitch);
     background-image:
-      linear-gradient(90deg, transparent 49.5%, oklch(0.97 0.01 120 / 0.04) 50%, transparent 50.5%),
-      repeating-linear-gradient(90deg, transparent 0, transparent 60px, oklch(0.32 0.10 152 / 0.18) 60px, oklch(0.32 0.10 152 / 0.18) 120px);
+      /* center circle */
+      radial-gradient(circle at 50% 50%, transparent 60px, oklch(1 0 0 / 0.18) 60px, oklch(1 0 0 / 0.18) 62px, transparent 62px),
+      /* center spot */
+      radial-gradient(circle at 50% 50%, oklch(1 0 0 / 0.3) 2px, transparent 3px),
+      /* halfway line */
+      linear-gradient(to right, transparent calc(50% - 1px), oklch(1 0 0 / 0.18) calc(50% - 1px), oklch(1 0 0 / 0.18) calc(50% + 1px), transparent calc(50% + 1px)),
+      /* mowing stripes */
+      repeating-linear-gradient(90deg, oklch(0.42 0.13 145), oklch(0.42 0.13 145) 40px, oklch(0.38 0.13 145) 40px, oklch(0.38 0.13 145) 80px);
   }
-  @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 0 0 oklch(0.78 0.18 152 / 0.6); }
-    50% { box-shadow: 0 0 0 12px oklch(0.78 0.18 152 / 0); }
+  .ticket-edge {
+    mask-image: radial-gradient(circle at 0 50%, transparent 8px, black 9px), radial-gradient(circle at 100% 50%, transparent 8px, black 9px);
+    mask-composite: intersect;
+    -webkit-mask-image: radial-gradient(circle at 0 50%, transparent 8px, black 9px), radial-gradient(circle at 100% 50%, transparent 8px, black 9px);
+    -webkit-mask-composite: source-in;
   }
-  .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
-  @keyframes float-up {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+  .perf-divider {
+    background-image: radial-gradient(circle, var(--ink) 1px, transparent 1.5px);
+    background-size: 6px 6px;
+    background-repeat: repeat-x;
+    background-position: center;
+    height: 6px;
   }
-  .animate-float-up { animation: float-up 0.7s ease-out backwards; }
+  .stamp {
+    box-shadow: var(--shadow-stamp);
+    border: 1.5px solid var(--ink);
+  }
+  .underline-marker {
+    background-image: linear-gradient(transparent 60%, oklch(0.85 0.16 85 / 0.7) 60%);
+  }
+  .hatch {
+    background-image: repeating-linear-gradient(45deg, oklch(0.18 0.02 70 / 0.06) 0, oklch(0.18 0.02 70 / 0.06) 1px, transparent 1px, transparent 6px);
+  }
+  @keyframes ticker {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .animate-ticker { animation: ticker 60s linear infinite; }
 }
