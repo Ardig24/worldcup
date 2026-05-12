@@ -1,5 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ReactNode } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { LogOut, User } from "lucide-react";
 
 const navItems = [
   { to: "/", label: "Home" },
@@ -10,6 +12,17 @@ const navItems = [
 
 export function TopNav() {
   const { location } = useRouterState();
+  const { user, signOut, loading } = useAuth();
+
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (error) {
+      console.error('Sign out error:', error);
+    } else {
+      window.location.href = '/';
+    }
+  };
+
   return (
     <header className="sticky top-0 z-50 bg-background/85 backdrop-blur border-b-2 border-ink/10">
       <div className="max-w-[1200px] mx-auto px-6 h-16 flex items-center justify-between">
@@ -42,15 +55,47 @@ export function TopNav() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Link
-            to="/dashboard"
-            className="hidden sm:inline-flex items-center gap-1.5 px-4 h-9 rounded-full bg-ink text-paper text-sm font-medium hover:bg-pitch-deep transition stamp"
-          >
-            Predict now
-          </Link>
-          <div className="w-9 h-9 rounded-full bg-sunshine border-2 border-ink flex items-center justify-center text-xs font-bold">
-            YOU
-          </div>
+          {!loading && user ? (
+            <>
+              <Link
+                to="/dashboard"
+                className="hidden sm:inline-flex items-center gap-1.5 px-4 h-9 rounded-full bg-ink text-paper text-sm font-medium hover:bg-pitch-deep transition stamp"
+              >
+                Predict now
+              </Link>
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/profile"
+                  className="w-9 h-9 rounded-full bg-sunshine border-2 border-ink flex items-center justify-center text-xs font-bold hover:bg-sunshine/60 transition"
+                  title="Profile"
+                >
+                  {user.email?.[0].toUpperCase()}
+                </Link>
+                <button
+                  onClick={handleSignOut}
+                  className="p-2 rounded-full hover:bg-sunshine/40 transition"
+                  title="Sign out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="hidden sm:inline-flex items-center gap-1.5 px-4 h-9 rounded-full border-2 border-ink text-ink text-sm font-medium hover:bg-sunshine/40 transition"
+              >
+                Sign in
+              </Link>
+              <Link
+                to="/signup"
+                className="inline-flex items-center gap-1.5 px-4 h-9 rounded-full bg-ink text-paper text-sm font-medium hover:bg-pitch-deep transition stamp"
+              >
+                Sign up
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>

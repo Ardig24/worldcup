@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PageShell, Eyebrow, Flag } from "@/components/AppShell";
-import { Trophy, Flame, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Trophy, Flame, TrendingUp, TrendingDown, Minus, Loader2 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/leaderboard")({
   head: () => ({
@@ -13,25 +15,93 @@ export const Route = createFileRoute("/leaderboard")({
   component: Leaderboard,
 });
 
-type Row = { r: number; n: string; c: string; p: number; acc: number; exact: number; trend: "up" | "down" | "flat"; you?: boolean };
+type Row = { r: number; n: string; c: string; p: number; acc: number; exact: number; trend: "up" | "down" | "flat"; you?: boolean; id: string };
 
-const rows: Row[] = [
-  { r: 1, n: "lucia.f",  c: "🇦🇷", p: 184, acc: 68, exact: 18, trend: "up" },
-  { r: 2, n: "kenji_07", c: "🇯🇵", p: 179, acc: 65, exact: 16, trend: "flat" },
-  { r: 3, n: "amine.b",  c: "🇲🇦", p: 175, acc: 64, exact: 15, trend: "up" },
-  { r: 4, n: "you",      c: "🌍", p: 168, acc: 61, exact: 12, trend: "up", you: true },
-  { r: 5, n: "sara.l",   c: "🇩🇪", p: 162, acc: 59, exact: 13, trend: "down" },
-  { r: 6, n: "diego.a",  c: "🇧🇷", p: 158, acc: 58, exact: 11, trend: "up" },
-  { r: 7, n: "olu.k",    c: "🇳🇬", p: 155, acc: 57, exact: 10, trend: "flat" },
-  { r: 8, n: "mateo.c",  c: "🇨🇴", p: 151, acc: 56, exact: 11, trend: "down" },
-  { r: 9, n: "noor.h",   c: "🇸🇦", p: 148, acc: 55, exact: 9,  trend: "up" },
-  { r: 10, n: "anya.p",  c: "🇷🇺", p: 145, acc: 54, exact: 9,  trend: "flat" },
-];
+type LeaderboardUser = {
+  id: string;
+  username: string;
+  country_code: string | null;
+  total_points: number;
+  total_predictions: number;
+  exact_scores: number;
+};
 
 const tabs = ["Global", "Country", "Group: Office", "Friends"] as const;
 
 function Leaderboard() {
+  const { user } = useAuth();
+  const supabase = createClient();
   const [active, setActive] = useState<typeof tabs[number]>("Global");
+  const [leaderboard, setLeaderboard] = useState<Row[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchLeaderboard();
+  }, [user?.id]);
+
+  const fetchLeaderboard = async () => {
+    setLoading(true);
+    try {
+      // Fetch users with their prediction stats
+      const { data, error } = await supabase
+        .from('users')
+        .select(`
+          id,
+          username,
+          country_code,
+          predictions (
+            points_earned,
+            beat_ai
+          )
+        `);
+
+      if (error) throw error;
+
+      const leaderboardData: LeaderboardUser[] = (data || []).map((u: any) => {
+        const predictions = u.predictions || [];
+        const totalPoints = predictions.reduce((sum: number, p: any) => sum + (p.points_earned || 0), 0);
+        const exactScores = predictions.filter((p: any) => p.points_earned >= 3).length;
+        
+        return {
+          id: u.id,
+          username: u.username,
+          country_code: u.country_code,
+          total_points: totalPoints,
+          total_predictions: predictions.length,
+          exact_scores: exactScores,
+        };
+      }).sort((a, b) => b.total_points - a.total_points);
+
+      const rows: Row[] = leaderboardData.map((u, index) => ({
+        r: index + 1,
+        n: u.username,
+        c: u.country_code || '🌍',
+        p: u.total_points,
+        acc: u.total_predictions > 0 ? Math.round((u.total_points / (u.total_predictions * 3)) * 100) : 0,
+        exact: u.exact_scores,
+        trend: 'flat',
+        you: user?.id === u.id,
+        id: u.id,
+      }));
+
+      setLeaderboard(rows);
+    } catch (error) {
+      console.error('Error fetching leaderboard:', error);
+      setLeaderboard([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <PageShell>
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin" />
+        </div>
+      </PageShell>
+    );
+  }
 
   return (
     <PageShell>
@@ -45,11 +115,11 @@ function Leaderboard() {
 
         {/* Podium */}
         <div className="mt-10 grid sm:grid-cols-3 gap-4 items-end">
-          {[rows[1], rows[0], rows[2]].map((p, i) => {
+          {leaderboard.length >= 3 ? [leaderboard[1], leaderboard[0], leaderboard[2]].map((p, i) => {
             const place = [2, 1, 3][i];
             const heights = ["pt-10", "pt-4", "pt-14"];
             return (
-              <div key={p.n} className={`${heights[i]}`}>
+              <div key={p.id} className={`${heights[i]}`}>
                 <div className="relative">
                   <div className="absolute inset-0 translate-x-1.5 translate-y-1.5 bg-ink rounded-md" />
                   <div className={`relative rounded-md border-2 border-ink p-6 text-center ${place === 1 ? "bg-sunshine" : "bg-chalk"}`}>
@@ -63,7 +133,11 @@ function Leaderboard() {
                 </div>
               </div>
             );
-          })}
+          }) : (
+            <div className="col-span-3 text-center py-12 text-muted-foreground">
+              No data yet. Make predictions to appear on the leaderboard.
+            </div>
+          )}
         </div>
 
         {/* Tabs */}
@@ -78,7 +152,7 @@ function Leaderboard() {
             </button>
           ))}
           <div className="ml-auto text-xs font-mono-num text-muted-foreground self-center">
-            Showing <span className="text-foreground">10</span> of <span className="text-foreground">2.4M</span>
+            Showing <span className="text-foreground">{leaderboard.length}</span> tipsters
           </div>
         </div>
 
@@ -91,33 +165,44 @@ function Leaderboard() {
             <div className="col-span-2 text-right hidden sm:block">Exact</div>
             <div className="col-span-2 text-right">Pts</div>
           </div>
-          {rows.map((row) => (
-            <div
-              key={row.r}
-              className={`grid grid-cols-12 items-center px-5 py-3 border-b border-ink/10 last:border-0 ${row.you ? "bg-sunshine/40" : "hover:bg-secondary/40"}`}
-            >
-              <div className="col-span-1 flex items-center gap-1.5">
-                <span className={`font-score text-2xl ${row.r <= 3 ? "text-tomato" : "text-foreground"}`}>{row.r}</span>
-                <Trend t={row.trend} />
-              </div>
-              <div className="col-span-5 flex items-center gap-3">
-                <Flag code={row.c} size="sm" />
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">{row.n}</span>
-                  {row.r === 1 && <Flame className="w-3.5 h-3.5 text-tomato" />}
-                  {row.you && <span className="px-1.5 py-0.5 rounded bg-ink text-paper text-[9px] font-mono-num uppercase tracking-widest">you</span>}
-                </div>
-              </div>
-              <div className="col-span-2 text-right text-muted-foreground font-mono-num text-sm hidden sm:block">{row.acc}%</div>
-              <div className="col-span-2 text-right text-muted-foreground font-mono-num text-sm hidden sm:block">{row.exact}</div>
-              <div className="col-span-2 text-right font-score text-2xl">{row.p}</div>
+          {leaderboard.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              No predictions yet. Be the first to predict!
             </div>
-          ))}
+          ) : (
+            leaderboard.map((row) => (
+              <div
+                key={row.id}
+                className={`grid grid-cols-12 items-center px-5 py-3 border-b border-ink/10 last:border-0 ${row.you ? "bg-sunshine/40" : "hover:bg-secondary/40"}`}
+              >
+                <div className="col-span-1 flex items-center gap-1.5">
+                  <span className={`font-score text-2xl ${row.r <= 3 ? "text-tomato" : "text-foreground"}`}>{row.r}</span>
+                  <Trend t={row.trend} />
+                </div>
+                <div className="col-span-5 flex items-center gap-3">
+                  <Flag code={row.c} size="sm" />
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{row.n}</span>
+                    {row.r === 1 && <Flame className="w-3.5 h-3.5 text-tomato" />}
+                    {row.you && <span className="px-1.5 py-0.5 rounded bg-ink text-paper text-[9px] font-mono-num uppercase tracking-widest">you</span>}
+                  </div>
+                </div>
+                <div className="col-span-2 text-right text-muted-foreground font-mono-num text-sm hidden sm:block">{row.acc}%</div>
+                <div className="col-span-2 text-right text-muted-foreground font-mono-num text-sm hidden sm:block">{row.exact}</div>
+                <div className="col-span-2 text-right font-score text-2xl">{row.p}</div>
+              </div>
+            ))
+          )}
         </div>
 
-        <div className="mt-3 text-xs text-muted-foreground font-mono-num text-center">
-          You are 16 points off the podium. Predict <span className="text-foreground">3 exact scores</span> to leapfrog.
-        </div>
+        {user && leaderboard.length > 0 && (
+          <div className="mt-3 text-xs text-muted-foreground font-mono-num text-center">
+            {leaderboard.find(r => r.you) 
+              ? `You are ranked #${leaderboard.find(r => r.you)?.r} with ${leaderboard.find(r => r.you)?.p} points.`
+              : 'Make predictions to appear on the leaderboard.'
+            }
+          </div>
+        )}
       </div>
     </PageShell>
   );

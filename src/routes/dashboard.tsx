@@ -1,7 +1,13 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { PageShell, Eyebrow, Flag } from "@/components/AppShell";
-import { Brain, Lock, Plus, Minus, TrendingUp, Target, CheckCircle2, Clock, ChevronRight } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { generateAIPredictionsForMatches } from "@/lib/openrouter";
+import { TEAM_GROUPS, ALL_GROUPS, STAGE_LABELS } from "@/lib/groups";
+import { getFlag } from "@/lib/flags";
+import { AuthModal } from "@/components/AuthModal";
+import { Brain, Lock, Plus, Minus, TrendingUp, Target, CheckCircle2, Clock, ChevronRight, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -28,73 +34,174 @@ type Match = {
   finalScore?: [number, number];
   yourScore?: [number, number];
   pts?: number;
+  dbId?: string;
 };
 
-const upcoming: Match[] = [
-  {
-    id: "m1",
-    stage: "Group A · MD1",
-    date: "Jun 11", time: "20:00",
-    venue: "Estadio Azteca, CDMX",
-    home: { code: "🇲🇽", name: "Mexico", abbr: "MEX" },
-    away: { code: "🇨🇦", name: "Canada", abbr: "CAN" },
-    ai: [2, 0], conf: 71, status: "open",
-  },
-  {
-    id: "m2",
-    stage: "Group B · MD1",
-    date: "Jun 12", time: "15:00",
-    venue: "MetLife Stadium, NJ",
-    home: { code: "🇺🇸", name: "USA", abbr: "USA" },
-    away: { code: "🇯🇵", name: "Japan", abbr: "JPN" },
-    ai: [1, 1], conf: 58, status: "open",
-  },
-  {
-    id: "m3",
-    stage: "Group C · MD1",
-    date: "Jun 12", time: "18:00",
-    venue: "BMO Field, Toronto",
-    home: { code: "🇦🇷", name: "Argentina", abbr: "ARG" },
-    away: { code: "🇲🇦", name: "Morocco", abbr: "MAR" },
-    ai: [2, 1], conf: 64, status: "open",
-  },
-];
-
-const live: Match = {
-  id: "live",
-  stage: "Group D · MD1 · LIVE",
-  date: "Now", time: "67'",
-  venue: "SoFi Stadium, LA",
-  home: { code: "🇧🇷", name: "Brazil", abbr: "BRA" },
-  away: { code: "🇩🇪", name: "Germany", abbr: "GER" },
-  ai: [1, 1], conf: 55, status: "live", liveMin: "67'",
-  finalScore: [1, 1],
-  yourScore: [2, 1],
+type DBMatch = {
+  id: string;
+  home_team_code: string;
+  home_team_name: string;
+  away_team_code: string;
+  away_team_name: string;
+  match_date: string;
+  venue: string;
+  stage: string;
+  status: string;
+  home_score: number | null;
+  away_score: number | null;
+  minute: number | null;
 };
 
-const finished: Match[] = [
-  {
-    id: "f1", stage: "Friendly", date: "Jun 8", time: "FT",
-    venue: "Wembley", home: { code: "🇪🇸", name: "Spain", abbr: "ESP" },
-    away: { code: "🇮🇹", name: "Italy", abbr: "ITA" },
-    ai: [1, 1], conf: 50, status: "final",
-    finalScore: [2, 1], yourScore: [2, 1], pts: 4,
-  },
-  {
-    id: "f2", stage: "Friendly", date: "Jun 7", time: "FT",
-    venue: "Old Trafford", home: { code: "🇫🇷", name: "France", abbr: "FRA" },
-    away: { code: "🇧🇪", name: "Belgium", abbr: "BEL" },
-    ai: [2, 0], conf: 60, status: "final",
-    finalScore: [1, 1], yourScore: [1, 0], pts: 1,
-  },
-];
+type DBPrediction = {
+  id: string;
+  match_id: string;
+  home_score: number;
+  away_score: number;
+  points_earned: number;
+  beat_ai: boolean;
+};
+
+type FilterMode = 'all' | 'date' | 'group' | 'stage';
 
 function Dashboard() {
+  const { user } = useAuth();
+  const supabase = createClient();
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [predictions, setPredictions] = useState<Record<string, DBPrediction>>({});
+  const [loading, setLoading] = useState(true);
+  const [filterMode, setFilterMode] = useState<FilterMode>('all');
+  const [filterValue, setFilterValue] = useState<string>('');
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+
+  useEffect(() => {
+    fetchMatches();
+  }, [user?.id]);
+
+  const fetchMatches = async () => {
+    setLoading(true);
+    try {
+      const { data: matchesData, error: matchesError } = await supabase
+        .from('matches')
+        .select('*')
+        .order('match_date', { ascending: true });
+
+      if (matchesError) throw matchesError;
+
+      let predictionsMap: Record<string, DBPrediction> = {};
+      if (user) {
+        const { data: predictionsData, error: predictionsError } = await supabase
+          .from('predictions')
+          .select('*')
+          .eq('user_id', user.id);
+
+        if (!predictionsError) {
+          predictionsData?.forEach((p: DBPrediction) => {
+            predictionsMap[p.match_id] = p;
+          });
+        }
+      }
+
+      setPredictions(predictionsMap);
+
+      // Fetch AI predictions
+      const { data: aiPredictionsData } = await supabase
+        .from('ai_predictions')
+        .select('*');
+
+      const aiPredictionsMap: Record<string, { scores: [number, number]; conf: number }> = {};
+      aiPredictionsData?.forEach((ai: any) => {
+        aiPredictionsMap[ai.match_id] = {
+          scores: [ai.home_score, ai.away_score],
+          conf: ai.confidence,
+        };
+      });
+
+      // AI predictions are generated on-demand via the "Generate AI" button
+      // and stored in the database to be shared with all users.
+
+      const formattedMatches: Match[] = matchesData?.map((m: DBMatch) => {
+        const date = new Date(m.match_date);
+        const prediction = predictionsMap[m.id];
+        const aiPred = aiPredictionsMap[m.id] || { scores: [1, 1], conf: 50 };
+        
+        return {
+          id: m.id,
+          dbId: m.id,
+          stage: m.stage,
+          date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          time: date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+          venue: m.venue,
+          home: { code: getFlag(m.home_team_code), name: m.home_team_name, abbr: m.home_team_code },
+          away: { code: getFlag(m.away_team_code), name: m.away_team_name, abbr: m.away_team_code },
+          ai: aiPred.scores as [number, number],
+          conf: aiPred.conf,
+          status: m.status === 'scheduled' ? 'open' : m.status === 'live' ? 'live' : 'final',
+          liveMin: m.minute ? `${m.minute}'` : undefined,
+          finalScore: m.home_score !== null && m.away_score !== null ? [m.home_score, m.away_score] : undefined,
+          yourScore: prediction ? [prediction.home_score, prediction.away_score] : undefined,
+          pts: prediction?.points_earned,
+        };
+      }) || [];
+
+      setMatches(formattedMatches);
+    } catch (error) {
+      console.error('Error fetching matches:', error);
+      setMatches([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePrediction = async (matchId: string, homeScore: number, awayScore: number) => {
+    if (!user) {
+      setAuthModalOpen(true);
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('predictions')
+        .upsert({
+          user_id: user.id,
+          match_id: matchId,
+          home_score: homeScore,
+          away_score: awayScore,
+          locked_at: new Date().toISOString(),
+        });
+
+      if (error) throw error;
+
+      await fetchMatches();
+    } catch (error) {
+      console.error('Error saving prediction:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <PageShell>
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin" />
+        </div>
+      </PageShell>
+    );
+  }
+
+  const userPredictions = Object.values(predictions);
+  const totalPoints = userPredictions.reduce((sum, p) => sum + (p.points_earned || 0), 0);
+  const finishedPredictions = userPredictions.filter((p) => p.points_earned !== null && p.points_earned !== undefined);
+  const exactScores = finishedPredictions.filter((p) => p.points_earned >= 3).length;
+  const beatAICount = userPredictions.filter((p) => p.beat_ai).length;
+  const totalFinals = matches.filter((m) => m.status === 'final').length;
+  const accuracy = finishedPredictions.length > 0
+    ? Math.round((finishedPredictions.reduce((s, p) => s + (p.points_earned || 0), 0) / (finishedPredictions.length * 3)) * 100)
+    : 0;
+
   const stats = [
-    { l: "Total points", v: "168", h: "+8 this week", icon: TrendingUp },
-    { l: "Accuracy", v: "61%", h: "104 picks", icon: Target },
-    { l: "Exact scores", v: "12", h: "of 47 finals", icon: CheckCircle2 },
-    { l: "Beat the AI", v: "9×", h: "streak: 3", icon: Brain },
+    { l: "Total points", v: String(totalPoints), h: userPredictions.length > 0 ? `${userPredictions.length} picks` : "Start predicting", icon: TrendingUp },
+    { l: "Accuracy", v: `${accuracy}%`, h: `${finishedPredictions.length} graded`, icon: Target },
+    { l: "Exact scores", v: String(exactScores), h: `of ${totalFinals} finals`, icon: CheckCircle2 },
+    { l: "Beat the AI", v: `${beatAICount}×`, h: `from ${userPredictions.length} picks`, icon: Brain },
   ];
 
   return (
@@ -103,17 +210,13 @@ function Dashboard() {
         {/* Header */}
         <div className="flex items-end justify-between flex-wrap gap-4 border-b-2 border-ink/10 pb-8">
           <div>
-            <Eyebrow tone="tomato">Matchday Dashboard · Jun 11</Eyebrow>
+            <Eyebrow tone="tomato">Matchday Dashboard</Eyebrow>
             <h1 className="mt-3 font-display font-black text-5xl lg:text-6xl leading-[0.95]">
               Good evening, <span className="italic">Tipster.</span>
             </h1>
-            <p className="mt-3 text-muted-foreground">3 fixtures open for predictions. Lock them before kick-off.</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="px-4 h-10 rounded-full bg-ink text-paper inline-flex items-center gap-2 font-mono-num text-sm">
-              <span className="w-2 h-2 rounded-full bg-sunshine animate-pulse" />
-              Rank <span className="font-bold">#1,284</span>
-            </div>
+            <p className="mt-3 text-muted-foreground">
+              {matches.filter(m => m.status === 'open').length} fixtures open for predictions. Lock them before kick-off.
+            </p>
           </div>
         </div>
 
@@ -130,20 +233,117 @@ function Dashboard() {
         </div>
 
         {/* Live */}
-        <div className="mt-12">
-          <SectionHeader eyebrow="Now playing" title="Live" tone="tomato" />
-          <div className="mt-5">
-            <LiveMatchCard m={live} />
+        {matches.filter(m => m.status === 'live').length > 0 && (
+          <div className="mt-12">
+            <SectionHeader eyebrow="Now playing" title="Live" tone="tomato" />
+            <div className="mt-5 space-y-4">
+              {matches.filter(m => m.status === 'live').map((m) => (
+                <LiveMatchCard key={m.id} m={m} />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Open predictions */}
         <div className="mt-12">
           <SectionHeader eyebrow="Open for predictions" title="Up next" />
+
+          {/* Filter Tabs */}
+          <div className="mt-5 flex flex-wrap items-center gap-2 border-b-2 border-ink/10 pb-4">
+            <FilterTab active={filterMode === 'all'} onClick={() => { setFilterMode('all'); setFilterValue(''); }}>
+              All matches
+            </FilterTab>
+            <FilterTab active={filterMode === 'date'} onClick={() => { setFilterMode('date'); setFilterValue(''); }}>
+              By date
+            </FilterTab>
+            <FilterTab active={filterMode === 'group'} onClick={() => { setFilterMode('group'); setFilterValue(''); }}>
+              By group
+            </FilterTab>
+            <FilterTab active={filterMode === 'stage'} onClick={() => { setFilterMode('stage'); setFilterValue(''); }}>
+              By stage
+            </FilterTab>
+          </div>
+
+          {/* Filter sub-options */}
+          {filterMode === 'group' && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {ALL_GROUPS.map((g) => (
+                <button
+                  key={g}
+                  onClick={() => setFilterValue(filterValue === g ? '' : g)}
+                  className={`px-4 h-9 rounded-full text-sm font-medium border-2 transition ${
+                    filterValue === g ? 'bg-ink text-paper border-ink' : 'border-ink/20 hover:border-ink'
+                  }`}
+                >
+                  Group {g}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {filterMode === 'stage' && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {Object.entries(STAGE_LABELS).map(([key, label]) => (
+                <button
+                  key={key}
+                  onClick={() => setFilterValue(filterValue === key ? '' : key)}
+                  className={`px-4 h-9 rounded-full text-sm font-medium border-2 transition ${
+                    filterValue === key ? 'bg-ink text-paper border-ink' : 'border-ink/20 hover:border-ink'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {filterMode === 'date' && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {Array.from(new Set(matches.filter(m => m.status === 'open').map(m => m.date))).map((date) => (
+                <button
+                  key={date}
+                  onClick={() => setFilterValue(filterValue === date ? '' : date)}
+                  className={`px-4 h-9 rounded-full text-sm font-medium border-2 transition ${
+                    filterValue === date ? 'bg-ink text-paper border-ink' : 'border-ink/20 hover:border-ink'
+                  }`}
+                >
+                  {date}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Filtered matches */}
           <div className="mt-5 space-y-4">
-            {upcoming.map((m) => (
-              <PredictRow key={m.id} m={m} />
-            ))}
+            {(() => {
+              const openMatches = matches.filter(m => m.status === 'open');
+              let filtered = openMatches;
+
+              if (filterMode === 'group' && filterValue) {
+                filtered = openMatches.filter(m => 
+                  TEAM_GROUPS[m.home.abbr] === filterValue || TEAM_GROUPS[m.away.abbr] === filterValue
+                );
+              } else if (filterMode === 'stage' && filterValue) {
+                filtered = openMatches.filter(m => m.stage === filterValue);
+              } else if (filterMode === 'date' && filterValue) {
+                filtered = openMatches.filter(m => m.date === filterValue);
+              }
+
+              if (filtered.length === 0) {
+                return (
+                  <div className="text-center py-12 text-muted-foreground">
+                    {openMatches.length === 0
+                      ? 'No matches available for prediction. Use the admin panel to add matches.'
+                      : 'No matches match the selected filter.'}
+                  </div>
+                );
+              }
+
+              // When filtering by group, show group-style grid output; default uses PredictRow
+              return filtered.map((m) => (
+                <PredictRow key={m.id} m={m} onSave={handlePrediction} />
+              ));
+            })()}
           </div>
         </div>
 
@@ -151,13 +351,40 @@ function Dashboard() {
         <div className="mt-12">
           <SectionHeader eyebrow="Closed book" title="Your recent picks" />
           <div className="mt-5 space-y-3">
-            {finished.map((m) => (
-              <ResultRow key={m.id} m={m} />
-            ))}
+            {matches.filter(m => m.status === 'final').length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                No finished matches yet.
+              </div>
+            ) : (
+              matches.filter(m => m.status === 'final').map((m) => (
+                <ResultRow key={m.id} m={m} />
+              ))
+            )}
           </div>
         </div>
       </div>
+
+      <AuthModal
+        open={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        title="Sign in to predict"
+        description="Create a free account to lock in predictions and earn points."
+      />
     </PageShell>
+  );
+}
+
+function FilterTab({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`relative px-4 py-2 text-sm font-medium transition ${
+        active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+      }`}
+    >
+      {children}
+      {active && <span className="absolute left-3 right-3 -bottom-[18px] h-0.5 bg-tomato" />}
+    </button>
   );
 }
 
@@ -189,11 +416,15 @@ function LiveMatchCard({ m }: { m: Match }) {
             <div className="mt-3 font-display font-bold text-2xl">{m.home.name}</div>
           </div>
           <div className="text-center">
-            <div className="font-score text-8xl leading-none">{m.finalScore![0]}—{m.finalScore![1]}</div>
-            <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-paper/15 border border-paper/30 text-xs">
-              <span className="opacity-70">Your pick:</span>
-              <span className="font-score text-base">{m.yourScore![0]}—{m.yourScore![1]}</span>
+            <div className="font-score text-8xl leading-none">
+              {m.finalScore ? `${m.finalScore[0]}—${m.finalScore[1]}` : '—'}
             </div>
+            {m.yourScore && (
+              <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-paper/15 border border-paper/30 text-xs">
+                <span className="opacity-70">Your pick:</span>
+                <span className="font-score text-base">{m.yourScore[0]}—{m.yourScore[1]}</span>
+              </div>
+            )}
           </div>
           <div className="text-center">
             <Flag code={m.away.code} size="lg" />
@@ -205,10 +436,22 @@ function LiveMatchCard({ m }: { m: Match }) {
   );
 }
 
-function PredictRow({ m }: { m: Match }) {
-  const [h, setH] = useState(m.ai[0]);
-  const [a, setA] = useState(m.ai[1]);
-  const [locked, setLocked] = useState(false);
+function PredictRow({ m, onSave }: { m: Match; onSave: (matchId: string, homeScore: number, awayScore: number) => void }) {
+  const { user } = useAuth();
+  const [h, setH] = useState(m.yourScore?.[0] ?? m.ai[0]);
+  const [a, setA] = useState(m.yourScore?.[1] ?? m.ai[1]);
+  const [locked, setLocked] = useState(!!m.yourScore);
+
+  const handleLock = () => {
+    if (!user) {
+      onSave(m.dbId || m.id, h, a); // delegates to parent which opens modal
+      return;
+    }
+    if (!locked && m.dbId) {
+      onSave(m.dbId, h, a);
+      setLocked(true);
+    }
+  };
 
   return (
     <div className={`bg-chalk border-2 ${locked ? "border-pitch-deep" : "border-ink"} rounded-md overflow-hidden transition`}>
@@ -243,11 +486,11 @@ function PredictRow({ m }: { m: Match }) {
           <span className="text-muted-foreground">AI:</span>
           <span className="font-score text-lg">{m.ai[0]} — {m.ai[1]}</span>
           <span className="text-xs font-mono-num text-tomato">{m.conf}%</span>
-          <button className="ml-2 text-xs underline text-muted-foreground hover:text-foreground">why?</button>
         </div>
         <button
-          onClick={() => setLocked(!locked)}
-          className={`inline-flex items-center gap-1.5 px-4 h-9 rounded-full text-sm font-medium transition stamp ${locked ? "bg-pitch-deep text-paper" : "bg-ink text-paper hover:bg-pitch-deep"}`}
+          onClick={handleLock}
+          disabled={locked}
+          className={`inline-flex items-center gap-1.5 px-4 h-9 rounded-full text-sm font-medium transition stamp ${locked ? "bg-pitch-deep text-paper" : "bg-ink text-paper hover:bg-pitch-deep"} disabled:opacity-50`}
         >
           {locked ? <><CheckCircle2 className="w-3.5 h-3.5" /> Locked</> : <><Lock className="w-3.5 h-3.5" /> Lock prediction</>}
         </button>
