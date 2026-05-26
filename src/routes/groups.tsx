@@ -309,11 +309,11 @@ function Groups() {
 
   return (
     <PageShell>
-      <div className="max-w-[1200px] mx-auto px-6 py-10">
+      <div className="max-w-[1200px] mx-auto px-4 md:px-6 py-6 md:py-10">
         <div className="border-b-2 border-ink/10 pb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
             <Eyebrow tone="tomato">Private Leagues</Eyebrow>
-            <h1 className="mt-3 font-display font-black text-5xl lg:text-6xl leading-[0.95]">
+            <h1 className="mt-3 font-display font-black text-3xl md:text-5xl lg:text-6xl leading-[0.95]">
               Your <span className="italic">crew.</span>
             </h1>
             <p className="mt-3 text-muted-foreground">Battle through the tournament with people you actually know.</p>
@@ -332,7 +332,7 @@ function Groups() {
           </div>
         )}
 
-        <div className="mt-10 grid lg:grid-cols-12 gap-8">
+        <div className="mt-6 grid lg:grid-cols-12 gap-6">
           {/* Group list */}
           <aside className="lg:col-span-4 space-y-3">
             <div className="text-[11px] font-mono-num uppercase tracking-[0.2em] text-muted-foreground px-2">My groups · {groups.length}</div>

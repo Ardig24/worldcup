@@ -1,9 +1,12 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { PageShell, Eyebrow } from '@/components/AppShell'
 import { Plus, Loader2, Trash2, Upload, Brain } from 'lucide-react'
 import { generateAIPredictionsForMatches } from '@/lib/openrouter'
+import { useAuth } from '@/hooks/use-auth'
+
+const ADMIN_EMAILS = ['dendritech.io@gmail.com']
 
 export const Route = createFileRoute('/admin')({
   head: () => ({
@@ -27,6 +30,7 @@ interface Match {
 
 function Admin() {
   const navigate = useNavigate()
+  const { user, loading: authLoading } = useAuth()
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
   const [match, setMatch] = useState<Match>({
@@ -40,6 +44,22 @@ function Admin() {
   })
   const [matches, setMatches] = useState<any[]>([])
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!authLoading && (!user || !ADMIN_EMAILS.includes(user.email ?? ''))) {
+      navigate({ to: '/' })
+    }
+  }, [user, authLoading])
+
+  if (authLoading || !user || !ADMIN_EMAILS.includes(user.email ?? '')) {
+    return (
+      <PageShell>
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin" />
+        </div>
+      </PageShell>
+    )
+  }
 
   const stages = [
     { value: 'group', label: 'Group Stage' },

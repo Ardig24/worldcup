@@ -105,10 +105,10 @@ function Leaderboard() {
 
   return (
     <PageShell>
-      <div className="max-w-[1200px] mx-auto px-6 py-10">
+      <div className="max-w-[1200px] mx-auto px-4 md:px-6 py-6 md:py-10">
         <div className="border-b-2 border-ink/10 pb-8">
           <Eyebrow tone="tomato">Live Standings · Refreshed 12s ago</Eyebrow>
-          <h1 className="mt-3 font-display font-black text-5xl lg:text-6xl leading-[0.95]">
+          <h1 className="mt-3 font-display font-black text-3xl md:text-5xl lg:text-6xl leading-[0.95]">
             The table never <span className="italic">sleeps.</span>
           </h1>
         </div>

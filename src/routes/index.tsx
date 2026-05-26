@@ -40,7 +40,7 @@ function Hero() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   return (
     <section className="relative">
-      <div className="max-w-[1200px] mx-auto px-6 pt-16 pb-20">
+      <div className="max-w-[1200px] mx-auto px-4 md:px-6 pt-10 md:pt-16 pb-16 md:pb-20">
         <div className="grid lg:grid-cols-12 gap-10 items-end">
           <div className="lg:col-span-8">
             <Eyebrow tone="tomato">Issue Nº 01 · Kick-off June 11, 2026</Eyebrow>
@@ -87,6 +87,33 @@ function Hero() {
                   </button>
                 </>
               )}
+            </div>
+
+            {/* App store badges */}
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <div className="text-[10px] font-mono-num uppercase tracking-[0.2em] text-muted-foreground w-full mb-1">
+                App coming soon
+              </div>
+              {/* App Store */}
+              <div className="inline-flex items-center gap-2.5 px-4 h-11 rounded-xl bg-ink text-paper border border-ink/20 opacity-70 cursor-not-allowed select-none">
+                <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                </svg>
+                <div className="leading-tight text-left">
+                  <div className="text-[9px] opacity-70">Coming soon on</div>
+                  <div className="text-sm font-semibold -mt-0.5">App Store</div>
+                </div>
+              </div>
+              {/* Google Play */}
+              <div className="inline-flex items-center gap-2.5 px-4 h-11 rounded-xl bg-ink text-paper border border-ink/20 opacity-70 cursor-not-allowed select-none">
+                <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3.18 23.76c.3.17.64.22.97.15l12.08-12.08L12.94 8.5 3.18 23.76zm17.44-10.4L17.5 11.7l-3.5 3.5 3.5 3.5 3.14-1.68c.9-.48.9-1.77-.02-2.66zM3.54.54C3.2.47 2.86.53 2.56.7L15.44 13.6l3.28-3.28L3.54.54z"/>
+                </svg>
+                <div className="leading-tight text-left">
+                  <div className="text-[9px] opacity-70">Coming soon on</div>
+                  <div className="text-sm font-semibold -mt-0.5">Google Play</div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -323,11 +350,11 @@ function FeaturedFixture() {
   }, []);
 
   return (
-    <section className="py-24 px-6">
-      <div className="max-w-[1200px] mx-auto grid lg:grid-cols-12 gap-12 items-center">
+    <section className="py-12 md:py-24 px-4 md:px-6">
+      <div className="max-w-[1200px] mx-auto grid lg:grid-cols-12 gap-8 md:gap-12 items-center">
         <div className="lg:col-span-5">
           <Eyebrow tone="pitch">How it works</Eyebrow>
-          <h2 className="mt-4 font-display font-black text-5xl lg:text-6xl leading-[0.95]">
+          <h2 className="mt-4 font-display font-black text-3xl md:text-5xl lg:text-6xl leading-[0.95]">
             Two numbers.<br />
             <span className="italic">That's it.</span>
           </h2>
@@ -442,10 +469,10 @@ function ScoringRules() {
     { p: "+1", t: "Beat the AI", d: "Outscore the model on a single match.", bonus: true },
   ];
   return (
-    <section className="py-24 px-6 bg-pitch-deep text-paper">
+    <section className="py-12 md:py-24 px-4 md:px-6 bg-pitch-deep text-paper">
       <div className="max-w-[1200px] mx-auto">
         <Eyebrow tone="ink"><span className="text-sunshine">Rulebook</span></Eyebrow>
-        <h2 className="mt-4 font-display font-black text-5xl lg:text-6xl leading-[0.95] text-paper">
+        <h2 className="mt-4 font-display font-black text-3xl md:text-5xl lg:text-6xl leading-[0.95] text-paper">
           The maths<br />
           <span className="italic text-sunshine">behind the table.</span>
         </h2>
@@ -474,12 +501,12 @@ function ThreeLeagues() {
     { icon: Flame, t: "Local", d: "Top your city, country, and continent.", n: "Auto-joined" },
   ];
   return (
-    <section className="py-24 px-6">
+    <section className="py-12 md:py-24 px-4 md:px-6">
       <div className="max-w-[1200px] mx-auto">
         <div className="flex items-end justify-between flex-wrap gap-4">
           <div className="max-w-2xl">
             <Eyebrow tone="tomato">Three leagues</Eyebrow>
-            <h2 className="mt-4 font-display font-black text-5xl lg:text-6xl leading-[0.95]">Pick your battlefield.</h2>
+            <h2 className="mt-4 font-display font-black text-3xl md:text-5xl lg:text-6xl leading-[0.95]">Pick your battlefield.</h2>
           </div>
           <Link to="/leaderboard" className="text-sm font-medium underline underline-offset-4 hover:text-tomato">
             See the table →
@@ -511,11 +538,11 @@ function ThreeLeagues() {
 /* ───── BEAT THE AI ───── */
 function BeatTheAI() {
   return (
-    <section className="py-24 px-6">
-      <div className="max-w-[1200px] mx-auto grid lg:grid-cols-2 gap-12 items-center">
+    <section className="py-12 md:py-24 px-4 md:px-6">
+      <div className="max-w-[1200px] mx-auto grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
         <div>
           <Eyebrow tone="pitch">Beat the AI</Eyebrow>
-          <h2 className="mt-4 font-display font-black text-5xl lg:text-6xl leading-[0.95]">
+          <h2 className="mt-4 font-display font-black text-3xl md:text-5xl lg:text-6xl leading-[0.95]">
             The machine has<br />
             <span className="italic">an opinion.</span><br />
             <span className="underline-marker">Prove it wrong.</span>
@@ -573,7 +600,7 @@ function Voices() {
     { q: "Office league is on. Coffee is on the line.", n: "Amine, Casablanca", c: "🇲🇦" },
   ];
   return (
-    <section className="py-24 px-6 bg-secondary/40 border-y-2 border-ink/10">
+    <section className="py-12 md:py-24 px-4 md:px-6 bg-secondary/40 border-y-2 border-ink/10">
       <div className="max-w-[1200px] mx-auto">
         <Eyebrow tone="tomato">Field reports</Eyebrow>
         <div className="mt-8 grid md:grid-cols-3 gap-6">
@@ -598,13 +625,13 @@ function CTA() {
   const { user } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   return (
-    <section className="py-28 px-6">
+    <section className="py-16 md:py-28 px-4 md:px-6">
       <div className="max-w-[1200px] mx-auto">
         <div className="relative">
           <div className="absolute inset-0 translate-x-2 translate-y-2 bg-ink rounded-md" />
           <div className="relative bg-sunshine border-2 border-ink rounded-md p-12 lg:p-16 text-center">
             <Trophy className="w-10 h-10 mx-auto" />
-            <h2 className="mt-6 font-display font-black text-5xl lg:text-7xl leading-[0.95]">
+            <h2 className="mt-6 font-display font-black text-3xl md:text-5xl lg:text-7xl leading-[0.95]">
               The whistle blows<br />
               <span className="italic">June 11, 2026.</span>
             </h2>

@@ -206,12 +206,12 @@ function Dashboard() {
 
   return (
     <PageShell>
-      <div className="max-w-[1200px] mx-auto px-6 py-10">
+      <div className="max-w-[1200px] mx-auto px-4 md:px-6 py-6 md:py-10">
         {/* Header */}
         <div className="flex items-end justify-between flex-wrap gap-4 border-b-2 border-ink/10 pb-8">
           <div>
             <Eyebrow tone="tomato">Matchday Dashboard</Eyebrow>
-            <h1 className="mt-3 font-display font-black text-5xl lg:text-6xl leading-[0.95]">
+            <h1 className="mt-3 font-display font-black text-3xl md:text-5xl lg:text-6xl leading-[0.95]">
               Good evening, <span className="italic">Tipster.</span>
             </h1>
             <p className="mt-3 text-muted-foreground">
@@ -459,24 +459,24 @@ function PredictRow({ m, onSave }: { m: Match; onSave: (matchId: string, homeSco
         <span>{m.stage}</span>
         <span className="inline-flex items-center gap-1.5"><Clock className="w-3 h-3" /> {m.date} · {m.time} · {m.venue}</span>
       </div>
-      <div className="grid lg:grid-cols-12 items-center gap-4 p-5">
-        <div className="lg:col-span-4 flex items-center gap-3 justify-end text-right">
+      <div className="grid grid-cols-12 items-center gap-2 p-4">
+        <div className="col-span-4 flex items-center gap-1.5 justify-end text-right">
           <div>
-            <div className="font-display font-bold text-lg">{m.home.name}</div>
-            <div className="text-[11px] font-mono-num uppercase tracking-widest text-muted-foreground">{m.home.abbr}</div>
+            <div className="font-display font-bold text-sm md:text-lg leading-tight">{m.home.name}</div>
+            <div className="text-[10px] font-mono-num uppercase tracking-widest text-muted-foreground hidden sm:block">{m.home.abbr}</div>
           </div>
           <Flag code={m.home.code} />
         </div>
-        <div className="lg:col-span-4 flex items-center justify-center gap-2">
+        <div className="col-span-4 flex items-center justify-center gap-1">
           <NumPicker v={h} on={setH} disabled={locked} />
           <span className="font-score text-3xl text-muted-foreground">—</span>
           <NumPicker v={a} on={setA} disabled={locked} />
         </div>
-        <div className="lg:col-span-4 flex items-center gap-3">
+        <div className="col-span-4 flex items-center gap-1.5">
           <Flag code={m.away.code} />
           <div>
-            <div className="font-display font-bold text-lg">{m.away.name}</div>
-            <div className="text-[11px] font-mono-num uppercase tracking-widest text-muted-foreground">{m.away.abbr}</div>
+            <div className="font-display font-bold text-sm md:text-lg leading-tight">{m.away.name}</div>
+            <div className="text-[10px] font-mono-num uppercase tracking-widest text-muted-foreground hidden sm:block">{m.away.abbr}</div>
           </div>
         </div>
       </div>
