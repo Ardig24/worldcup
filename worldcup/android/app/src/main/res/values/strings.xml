@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ScoreBattle</string>
+    <string name="title_activity_main">ScoreBattle</string>
+    <string name="package_name">com.scorebattle.worldcup</string>
+    <string name="custom_url_scheme">com.scorebattle.worldcup</string>
+</resources>

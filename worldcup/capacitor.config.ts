@@ -1,0 +1,27 @@
+import type { CapacitorConfig } from "@capacitor/cli";
+
+const config: CapacitorConfig = {
+  appId: "com.scorebattle.worldcup",
+  appName: "ScoreBattle",
+  webDir: "dist",
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 2000,
+      launchAutoHide: true,
+      backgroundColor: "#0f172a",
+      showSpinner: false,
+    },
+    StatusBar: {
+      style: "dark",
+      backgroundColor: "#0f172a",
+    },
+  },
+  ios: {
+    contentInset: "automatic",
+  },
+  android: {
+    allowMixedContent: false,
+  },
+};
+
+export default config;
