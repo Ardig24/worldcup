@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { X, LogIn, UserPlus } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -23,6 +23,7 @@ export function AuthModal({
   const [error, setError] = useState('');
 
   const { signIn, signUp, signInWithGoogle } = useAuth();
+  const navigate = useNavigate();
 
   if (!open) return null;
 
@@ -38,7 +39,11 @@ export function AuthModal({
         setError(authError.message);
       } else {
         onClose();
-        window.location.reload();
+        if (mode === 'signup') {
+          navigate({ to: '/profile' });
+        } else {
+          window.location.reload();
+        }
       }
     } catch (err: any) {
       setError(err.message);

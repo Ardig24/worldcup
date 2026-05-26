@@ -43,7 +43,7 @@ function Signup() {
     if (error) {
       setError(error.message)
     } else {
-      navigate({ to: '/dashboard' })
+      navigate({ to: '/profile' })
     }
     setLoading(false)
   }

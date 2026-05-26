@@ -275,6 +275,11 @@ function Profile() {
           <h1 className="mt-3 font-display font-black text-5xl lg:text-6xl leading-[0.95]">
             Your <span className="italic">profile.</span>
           </h1>
+          {!user?.user_metadata?.username && (
+            <p className="mt-3 text-sm text-muted-foreground">
+              Welcome! Set your username and country to appear on the leaderboard.
+            </p>
+          )}
         </div>
 
         <div className="mt-10 space-y-8">
