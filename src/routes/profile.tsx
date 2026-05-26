@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { PageShell, Eyebrow, Flag } from "@/components/AppShell";
-import { User, Mail, MapPin, Camera, Save, LogOut } from "lucide-react";
+import { User, Mail, MapPin, Camera, Save, LogOut, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -219,6 +219,32 @@ function Profile() {
   const [country, setCountry] = useState(user?.user_metadata?.country_code || "🌍");
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(user?.user_metadata?.avatar_url || null);
+  const [avatarLoading, setAvatarLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    setAvatarLoading(true);
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `${user.id}/avatar.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path);
+      await supabase.auth.updateUser({ data: { avatar_url: publicUrl } });
+      await supabase.from('users').update({ avatar_url: publicUrl, updated_at: new Date().toISOString() }).eq('id', user.id);
+      setAvatarUrl(publicUrl);
+    } catch (err: any) {
+      console.error('Avatar upload failed:', err);
+    } finally {
+      setAvatarLoading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const handleSave = async () => {
     if (!user) return;
@@ -287,17 +313,26 @@ function Profile() {
           <div className="bg-chalk border-2 border-ink rounded-md p-6">
             <div className="flex items-start gap-6">
               <div className="relative">
-                <div className="w-24 h-24 rounded-full bg-sunshine border-2 border-ink flex items-center justify-center text-3xl font-bold">
-                  {user?.email?.[0].toUpperCase()}
-                </div>
-                <button className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-ink text-paper flex items-center justify-center hover:bg-pitch-deep transition">
-                  <Camera className="w-4 h-4" />
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="avatar" className="w-24 h-24 rounded-full border-2 border-ink object-cover" />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-sunshine border-2 border-ink flex items-center justify-center text-3xl font-bold">
+                    {user?.email?.[0].toUpperCase()}
+                  </div>
+                )}
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={avatarLoading}
+                  className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-ink text-paper flex items-center justify-center hover:bg-pitch-deep transition disabled:opacity-50"
+                >
+                  {avatarLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
                 </button>
+                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
               </div>
               <div className="flex-1">
                 <h3 className="font-display font-bold text-xl">Profile photo</h3>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Upload a photo to personalize your profile
+                  {avatarLoading ? 'Uploading...' : 'Tap the camera icon to upload a photo'}
                 </p>
               </div>
             </div>
