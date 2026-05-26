@@ -43,13 +43,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [supabase])
 
+  const ensureProfile = async (authUser: User) => {
+    try {
+      await supabase.from('users').upsert({
+        id: authUser.id,
+        email: authUser.email ?? '',
+        username: authUser.email?.split('@')[0] ?? `user_${authUser.id.slice(0, 6)}`,
+        auth_provider: authUser.app_metadata?.provider ?? 'email',
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'id', ignoreDuplicates: true })
+    } catch {
+      // Profile creation is best-effort; DB trigger handles the authoritative insert
+    }
+  }
+
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    if (!error && data.user) await ensureProfile(data.user)
     return { error }
   }
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({ email, password })
+    const { data, error } = await supabase.auth.signUp({ email, password })
+    if (!error && data.user) await ensureProfile(data.user)
     return { error }
   }
 

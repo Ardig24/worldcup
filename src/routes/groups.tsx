@@ -189,11 +189,31 @@ function Groups() {
     }
   };
 
+  const ensureUserProfile = async () => {
+    if (!user) return;
+    const { data: existing } = await supabase
+      .from('users')
+      .select('id')
+      .eq('id', user.id)
+      .single();
+    if (!existing) {
+      await supabase.from('users').insert({
+        id: user.id,
+        email: user.email ?? '',
+        username: user.email?.split('@')[0] ?? `user_${user.id.slice(0, 6)}`,
+        auth_provider: 'email',
+      });
+    }
+  };
+
   const handleCreateGroup = async () => {
     if (!user || !newGroupName.trim()) return;
     setCreateLoading(true);
     setError("");
     try {
+      // Ensure public.users row exists (FK requirement)
+      await ensureUserProfile();
+
       // Generate a random group code
       const code = generateGroupCode();
 
@@ -414,7 +434,19 @@ function Groups() {
                           {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                           {copied ? "Copied" : active.code}
                         </button>
-                        <button className="inline-flex items-center gap-2 px-4 h-10 rounded-full bg-ink text-paper text-sm font-medium hover:bg-pitch-deep transition">
+                        <button
+                          onClick={async () => {
+                            const text = `Join my ScoreBattle group "${active.name}"!\nUse code: ${active.code}`;
+                            if (navigator.share) {
+                              try { await navigator.share({ title: 'ScoreBattle', text }); } catch {}
+                            } else {
+                              await navigator.clipboard?.writeText(text);
+                              setCopied(true);
+                              setTimeout(() => setCopied(false), 1500);
+                            }
+                          }}
+                          className="inline-flex items-center gap-2 px-4 h-10 rounded-full bg-ink text-paper text-sm font-medium hover:bg-pitch-deep transition"
+                        >
                           <Share2 className="w-4 h-4" /> Invite
                         </button>
                       </div>
