@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { PageShell, Eyebrow, Flag } from "@/components/AppShell";
-import { Plus, Copy, Share2, Crown, Users, Hash, Sparkles, Check, Loader2 } from "lucide-react";
+import { Plus, Copy, Share2, Crown, Users, Hash, Sparkles, Check, Loader2, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AuthModal } from "@/components/AuthModal";
@@ -304,6 +304,19 @@ function Groups() {
     }
   };
 
+  const handleDeleteGroup = async (groupId: string) => {
+    if (!confirm('Delete this group? This cannot be undone.')) return;
+    try {
+      await supabase.from('group_members').delete().eq('group_id', groupId);
+      const { error } = await supabase.from('groups').delete().eq('id', groupId);
+      if (error) throw error;
+      setActive(null);
+      await fetchGroups();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
   const generateGroupCode = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let code = '';
@@ -449,6 +462,14 @@ function Groups() {
                         >
                           <Share2 className="w-4 h-4" /> Invite
                         </button>
+                        {active.is_leader && (
+                          <button
+                            onClick={() => handleDeleteGroup(active.id)}
+                            className="inline-flex items-center gap-2 px-4 h-10 rounded-full border-2 border-red-500 text-red-500 text-sm font-medium hover:bg-red-50 transition"
+                          >
+                            <Trash2 className="w-4 h-4" /> Delete
+                          </button>
+                        )}
                       </div>
                     </div>
 
