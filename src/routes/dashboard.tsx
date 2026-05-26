@@ -159,7 +159,7 @@ function Dashboard() {
     }
 
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('predictions')
         .upsert({
           user_id: user.id,
@@ -167,11 +167,22 @@ function Dashboard() {
           home_score: homeScore,
           away_score: awayScore,
           locked_at: new Date().toISOString(),
-        });
+        }, { onConflict: 'user_id,match_id' })
+        .select()
+        .single();
 
       if (error) throw error;
 
-      await fetchMatches();
+      setPredictions(prev => ({
+        ...prev,
+        [matchId]: data,
+      }));
+
+      setMatches(prev => prev.map(m =>
+        m.id === matchId
+          ? { ...m, yourScore: [homeScore, awayScore] as [number, number] }
+          : m
+      ));
     } catch (error) {
       console.error('Error saving prediction:', error);
     }
