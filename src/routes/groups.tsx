@@ -56,6 +56,7 @@ function Groups() {
   const [joinLoading, setJoinLoading] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
   const [error, setError] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -305,11 +306,11 @@ function Groups() {
   };
 
   const handleDeleteGroup = async (groupId: string) => {
-    if (!confirm('Delete this group? This cannot be undone.')) return;
     try {
       await supabase.from('group_members').delete().eq('group_id', groupId);
       const { error } = await supabase.from('groups').delete().eq('id', groupId);
       if (error) throw error;
+      setConfirmDelete(false);
       setActive(null);
       await fetchGroups();
     } catch (err: any) {
@@ -463,12 +464,30 @@ function Groups() {
                           <Share2 className="w-4 h-4" /> Invite
                         </button>
                         {active.is_leader && (
-                          <button
-                            onClick={() => handleDeleteGroup(active.id)}
-                            className="inline-flex items-center gap-2 px-4 h-10 rounded-full border-2 border-red-500 text-red-500 text-sm font-medium hover:bg-red-50 transition"
-                          >
-                            <Trash2 className="w-4 h-4" /> Delete
-                          </button>
+                          confirmDelete ? (
+                            <div className="inline-flex items-center gap-2">
+                              <span className="text-sm text-red-600 font-medium">Delete group?</span>
+                              <button
+                                onClick={() => handleDeleteGroup(active.id)}
+                                className="px-3 h-8 rounded-full bg-red-500 text-white text-xs font-medium hover:bg-red-600 transition"
+                              >
+                                Yes, delete
+                              </button>
+                              <button
+                                onClick={() => setConfirmDelete(false)}
+                                className="px-3 h-8 rounded-full border-2 border-ink/20 text-xs font-medium hover:border-ink transition"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setConfirmDelete(true)}
+                              className="inline-flex items-center gap-2 px-4 h-10 rounded-full border-2 border-red-500 text-red-500 text-sm font-medium hover:bg-red-50 transition"
+                            >
+                              <Trash2 className="w-4 h-4" /> Delete
+                            </button>
+                          )
                         )}
                       </div>
                     </div>
