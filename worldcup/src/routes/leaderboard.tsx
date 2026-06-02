@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { PageShell, Eyebrow, Flag } from "@/components/AppShell";
-import { Trophy, Flame, TrendingUp, TrendingDown, Minus, Loader2 } from "lucide-react";
+import { PageShell, Eyebrow } from "@/components/AppShell";
+import { Flame, TrendingUp, TrendingDown, Minus, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -15,12 +15,13 @@ export const Route = createFileRoute("/leaderboard")({
   component: Leaderboard,
 });
 
-type Row = { r: number; n: string; c: string; p: number; acc: number; exact: number; trend: "up" | "down" | "flat"; you?: boolean; id: string };
+type Row = { r: number; n: string; c: string; avatarUrl: string | null; p: number; acc: number; exact: number; trend: "up" | "down" | "flat"; you?: boolean; id: string };
 
 type LeaderboardUser = {
   id: string;
   username: string;
   country_code: string | null;
+  avatar_url: string | null;
   total_points: number;
   total_predictions: number;
   exact_scores: number;
@@ -35,6 +36,7 @@ function buildRows(data: LeaderboardUser[], userId?: string): Row[] {
     r: index + 1,
     n: u.username,
     c: u.country_code || '🌍',
+    avatarUrl: u.avatar_url,
     p: u.total_points,
     acc: u.total_predictions > 0 ? Math.round((u.total_points / (u.total_predictions * 3)) * 100) : 0,
     exact: u.exact_scores,
@@ -63,7 +65,7 @@ function Leaderboard() {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select(`id, username, country_code, predictions(points_earned, beat_ai)`);
+        .select(`id, username, country_code, avatar_url, predictions(points_earned, beat_ai)`);
       if (error) throw error;
 
       const users: LeaderboardUser[] = (data || []).map((u: any) => {
@@ -73,6 +75,7 @@ function Leaderboard() {
           id: u.id,
           username: u.username,
           country_code: u.country_code,
+          avatar_url: u.avatar_url,
           total_points: totalPoints,
           total_predictions: preds.length,
           exact_scores: preds.filter((p: any) => p.points_earned >= 3).length,
@@ -155,38 +158,6 @@ function Leaderboard() {
           </h1>
         </div>
 
-        {/* Podium */}
-        <div className="mt-8 grid grid-cols-3 gap-3 items-end">
-          {visibleRows.length >= 3 ? [visibleRows[1], visibleRows[0], visibleRows[2]].map((p, i) => {
-            const place = [2, 1, 3][i];
-            const heights = ["pt-8", "pt-0", "pt-12"];
-            return (
-              <div key={p.id} className={`${heights[i]}`}>
-                <div className="relative">
-                  <div className="absolute inset-0 translate-x-1 translate-y-1 bg-ink rounded-md" />
-                  <div className={`relative rounded-md border-2 border-ink p-3 text-center ${place === 1 ? "bg-sunshine" : "bg-chalk"}`}>
-                    <div className="font-score text-3xl text-tomato">#{place}</div>
-                    <div className="mt-2 mx-auto w-fit"><Flag code={p.c} size="sm" /></div>
-                    <div className="mt-2 font-display font-bold text-sm truncate">{p.n}</div>
-                    <div className="mt-0.5 font-score text-2xl">{p.p}</div>
-                    <div className="text-[9px] font-mono-num uppercase tracking-widest text-muted-foreground">pts</div>
-                    {place === 1 && <Trophy className="w-4 h-4 mx-auto mt-1" />}
-                  </div>
-                </div>
-              </div>
-            );
-          }) : (
-            <div className="col-span-3 text-center py-8 text-muted-foreground text-sm">
-              {active === 'Country' && !myCountry
-                ? 'Set your country in your profile to see country rankings.'
-                : active === 'My Groups' && myGroups.length === 0
-                ? 'Join a group first to see group rankings.'
-                : 'No data yet. Be the first to predict!'}
-            </div>
-          )}
-        </div>
-
-        {/* Tabs */}
         <div className="mt-8 flex gap-2 border-b border-ink/15 pb-3">
           {tabs.map((t) => (
             <button
@@ -246,7 +217,7 @@ function Leaderboard() {
                   <Trend t={row.trend} />
                 </div>
                 <div className="col-span-7 flex items-center gap-2 min-w-0">
-                  <Flag code={row.c} size="sm" />
+                  <Avatar url={row.avatarUrl} name={row.n} />
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="font-medium truncate">{row.n}</span>
                     {row.r === 1 && <Flame className="w-3 h-3 text-tomato shrink-0" />}
@@ -270,6 +241,16 @@ function Leaderboard() {
         )}
       </div>
     </PageShell>
+  );
+}
+
+function Avatar({ url, name }: { url: string | null; name: string }) {
+  return url ? (
+    <img src={url} alt={name} className="w-9 h-9 rounded-full border border-ink/15 object-cover shrink-0" />
+  ) : (
+    <div className="w-9 h-9 rounded-full bg-sunshine border border-ink/15 flex items-center justify-center shrink-0 font-display font-bold text-sm">
+      {(name || '?').slice(0, 1).toUpperCase()}
+    </div>
   );
 }
 

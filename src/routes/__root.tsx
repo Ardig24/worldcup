@@ -6,6 +6,7 @@ import {
   useRouter,
 } from "@tanstack/react-router";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { AnnouncementModal } from "@/components/AnnouncementModal";
 
 function NotFoundComponent() {
   return (
@@ -74,6 +75,7 @@ function RootComponent() {
   return (
     <AuthProvider>
       <Outlet />
+      <AnnouncementModal />
     </AuthProvider>
   );
 }

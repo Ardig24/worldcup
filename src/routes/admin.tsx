@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { PageShell, Eyebrow } from '@/components/AppShell'
-import { Plus, Loader2, Trash2, Upload, Brain } from 'lucide-react'
+import { Plus, Loader2, Trash2, Upload, Brain, Megaphone } from 'lucide-react'
 import { generateAIPredictionsForMatches } from '@/lib/openrouter'
 import { useAuth } from '@/hooks/use-auth'
 
@@ -44,6 +44,9 @@ function Admin() {
   })
   const [matches, setMatches] = useState<any[]>([])
   const [error, setError] = useState('')
+  const [announcementTitle, setAnnouncementTitle] = useState('')
+  const [announcementBody, setAnnouncementBody] = useState('')
+  const [announcementLoading, setAnnouncementLoading] = useState(false)
 
   useEffect(() => {
     if (!authLoading && (!user || !ADMIN_EMAILS.includes(user.email ?? ''))) {
@@ -273,6 +276,31 @@ function Admin() {
     })
   }
 
+  const handleAnnouncementSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setAnnouncementLoading(true)
+
+    try {
+      const { error } = await supabase.from('announcements').insert({
+        title: announcementTitle.trim(),
+        body: announcementBody.trim(),
+        active: true,
+        created_by: user.id,
+      })
+
+      if (error) throw error
+
+      setAnnouncementTitle('')
+      setAnnouncementBody('')
+      alert('Announcement posted successfully!')
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setAnnouncementLoading(false)
+    }
+  }
+
   return (
     <PageShell>
       <div className="max-w-4xl mx-auto px-6 py-12">
@@ -309,6 +337,63 @@ function Admin() {
             {error}
           </div>
         )}
+
+        <div className="bg-paper border-2 border-ink rounded-lg p-6 mb-8">
+          <div className="flex items-start gap-3 mb-5">
+            <div className="w-10 h-10 rounded-full bg-sunshine border-2 border-ink flex items-center justify-center shrink-0">
+              <Megaphone className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="font-display font-bold text-xl">News notification</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Post a message users will see once in a modal after logging in.
+              </p>
+            </div>
+          </div>
+
+          <form onSubmit={handleAnnouncementSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Title</label>
+              <input
+                type="text"
+                value={announcementTitle}
+                onChange={(e) => setAnnouncementTitle(e.target.value)}
+                className="w-full px-4 py-3 rounded-md border-2 border-ink bg-paper focus:outline-none focus:bg-sunshine/40"
+                placeholder="New feature is live"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Message</label>
+              <textarea
+                value={announcementBody}
+                onChange={(e) => setAnnouncementBody(e.target.value)}
+                className="w-full min-h-32 px-4 py-3 rounded-md border-2 border-ink bg-paper focus:outline-none focus:bg-sunshine/40"
+                placeholder="Write the news you want users to see..."
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={announcementLoading}
+              className="w-full px-6 h-12 rounded-full bg-tomato text-paper font-medium hover:bg-ink transition flex items-center justify-center gap-2 stamp disabled:opacity-50"
+            >
+              {announcementLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Posting...
+                </>
+              ) : (
+                <>
+                  <Megaphone className="w-4 h-4" />
+                  Post notification
+                </>
+              )}
+            </button>
+          </form>
+        </div>
 
         <div className="bg-paper border-2 border-ink rounded-lg p-6 mb-8">
           <form onSubmit={handleSubmit} className="space-y-6">

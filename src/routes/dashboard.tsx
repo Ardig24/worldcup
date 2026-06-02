@@ -24,6 +24,7 @@ type Match = {
   stage: string;
   date: string;
   time: string;
+  matchDate: string;
   venue: string;
   home: { code: string; name: string; abbr: string };
   away: { code: string; name: string; abbr: string };
@@ -130,6 +131,7 @@ function Dashboard() {
           stage: m.stage,
           date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
           time: date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+          matchDate: m.match_date,
           venue: m.venue,
           home: { code: getFlag(m.home_team_code), name: m.home_team_name, abbr: m.home_team_code },
           away: { code: getFlag(m.away_team_code), name: m.away_team_name, abbr: m.away_team_code },
@@ -159,6 +161,9 @@ function Dashboard() {
     }
 
     try {
+      const match = matches.find((m) => m.id === matchId);
+      if (match && Date.now() >= new Date(match.matchDate).getTime() - 60 * 60 * 1000) return;
+
       const { data, error } = await supabase
         .from('predictions')
         .upsert({
@@ -451,16 +456,25 @@ function PredictRow({ m, onSave }: { m: Match; onSave: (matchId: string, homeSco
   const { user } = useAuth();
   const [h, setH] = useState(m.yourScore?.[0] ?? m.ai[0]);
   const [a, setA] = useState(m.yourScore?.[1] ?? m.ai[1]);
-  const [locked, setLocked] = useState(!!m.yourScore);
+  const lockCutoff = new Date(m.matchDate).getTime() - 60 * 60 * 1000;
+  const pastCutoff = Date.now() >= lockCutoff;
+  const hasPrediction = !!m.yourScore;
+  const locked = hasPrediction && pastCutoff;
+
+  useEffect(() => {
+    if (m.yourScore) {
+      setH(m.yourScore[0]);
+      setA(m.yourScore[1]);
+    }
+  }, [m.id, m.yourScore?.[0], m.yourScore?.[1]]);
 
   const handleLock = () => {
     if (!user) {
-      onSave(m.dbId || m.id, h, a); // delegates to parent which opens modal
+      onSave(m.dbId || m.id, h, a);
       return;
     }
-    if (!locked && m.dbId) {
+    if (!pastCutoff && m.dbId) {
       onSave(m.dbId, h, a);
-      setLocked(true);
     }
   };
 
@@ -500,10 +514,16 @@ function PredictRow({ m, onSave }: { m: Match; onSave: (matchId: string, homeSco
         </div>
         <button
           onClick={handleLock}
-          disabled={locked}
-          className={`inline-flex items-center gap-1.5 px-4 h-9 rounded-full text-sm font-medium transition stamp ${locked ? "bg-pitch-deep text-paper" : "bg-ink text-paper hover:bg-pitch-deep"} disabled:opacity-50`}
+          disabled={pastCutoff}
+          className={`inline-flex items-center gap-1.5 px-4 h-9 rounded-full text-sm font-medium transition stamp ${pastCutoff ? "bg-pitch-deep text-paper" : "bg-ink text-paper hover:bg-pitch-deep"} disabled:opacity-50`}
         >
-          {locked ? <><CheckCircle2 className="w-3.5 h-3.5" /> Locked</> : <><Lock className="w-3.5 h-3.5" /> Lock prediction</>}
+          {pastCutoff ? (
+            <><CheckCircle2 className="w-3.5 h-3.5" /> Locked</>
+          ) : hasPrediction ? (
+            <><Lock className="w-3.5 h-3.5" /> Update prediction</>
+          ) : (
+            <><Lock className="w-3.5 h-3.5" /> Lock prediction</>
+          )}
         </button>
       </div>
     </div>
