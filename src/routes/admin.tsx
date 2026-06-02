@@ -28,6 +28,14 @@ interface Match {
   stage: string
 }
 
+interface Announcement {
+  id: string
+  title: string
+  body: string
+  active: boolean
+  created_at: string
+}
+
 function Admin() {
   const navigate = useNavigate()
   const { user, loading: authLoading } = useAuth()
@@ -47,12 +55,19 @@ function Admin() {
   const [announcementTitle, setAnnouncementTitle] = useState('')
   const [announcementBody, setAnnouncementBody] = useState('')
   const [announcementLoading, setAnnouncementLoading] = useState(false)
+  const [announcements, setAnnouncements] = useState<Announcement[]>([])
 
   useEffect(() => {
     if (!authLoading && (!user || !ADMIN_EMAILS.includes(user.email ?? ''))) {
       navigate({ to: '/' })
     }
   }, [user, authLoading])
+
+  useEffect(() => {
+    if (user && ADMIN_EMAILS.includes(user.email ?? '')) {
+      fetchAnnouncements()
+    }
+  }, [user?.id])
 
   if (authLoading || !user || !ADMIN_EMAILS.includes(user.email ?? '')) {
     return (
@@ -293,12 +308,63 @@ function Admin() {
 
       setAnnouncementTitle('')
       setAnnouncementBody('')
+      await fetchAnnouncements()
       alert('Announcement posted successfully!')
     } catch (err: any) {
       setError(err.message)
     } finally {
       setAnnouncementLoading(false)
     }
+  }
+
+  const fetchAnnouncements = async () => {
+    const { data, error } = await supabase
+      .from('announcements')
+      .select('id, title, body, active, created_at')
+      .order('created_at', { ascending: false })
+      .limit(10)
+
+    if (error) {
+      setError(error.message)
+      return
+    }
+
+    setAnnouncements(data || [])
+  }
+
+  const handleToggleAnnouncement = async (announcement: Announcement) => {
+    setError('')
+
+    const { error } = await supabase
+      .from('announcements')
+      .update({ active: !announcement.active })
+      .eq('id', announcement.id)
+
+    if (error) {
+      setError(error.message)
+      return
+    }
+
+    setAnnouncements(prev => prev.map(item =>
+      item.id === announcement.id ? { ...item, active: !item.active } : item
+    ))
+  }
+
+  const handleDeleteAnnouncement = async (announcementId: string) => {
+    if (!confirm('Delete this announcement? This cannot be undone.')) return
+    setError('')
+
+    const { error } = await supabase
+      .from('announcements')
+      .delete()
+      .eq('id', announcementId)
+
+    if (error) {
+      setError(error.message)
+      return
+    }
+
+    setAnnouncements(prev => prev.filter(item => item.id !== announcementId))
   }
 
   return (
@@ -393,6 +459,68 @@ function Admin() {
               )}
             </button>
           </form>
+
+          <div className="mt-8 border-t-2 border-ink/10 pt-6">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h3 className="font-display font-bold text-lg">Recent announcements</h3>
+              <button
+                onClick={fetchAnnouncements}
+                className="px-3 h-8 rounded-full border-2 border-ink/20 text-xs font-medium hover:border-ink transition"
+              >
+                Refresh
+              </button>
+            </div>
+
+            {announcements.length === 0 ? (
+              <div className="text-sm text-muted-foreground bg-sunshine/20 rounded-md p-4">
+                No announcements yet.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {announcements.map((announcement) => (
+                  <div key={announcement.id} className="rounded-md border-2 border-ink/10 bg-chalk p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="font-display font-bold text-lg">{announcement.title}</h4>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono-num uppercase tracking-widest ${
+                            announcement.active ? 'bg-pitch-deep text-paper' : 'bg-ink/10 text-muted-foreground'
+                          }`}>
+                            {announcement.active ? 'Active' : 'Inactive'}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {new Date(announcement.created_at).toLocaleString()}
+                        </p>
+                        <p className="mt-3 text-sm text-muted-foreground whitespace-pre-line line-clamp-3">
+                          {announcement.body}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+                        <button
+                          onClick={() => handleToggleAnnouncement(announcement)}
+                          className={`px-3 h-8 rounded-full text-xs font-medium transition ${
+                            announcement.active
+                              ? 'border-2 border-ink/20 hover:border-ink'
+                              : 'bg-pitch-deep text-paper hover:bg-ink'
+                          }`}
+                        >
+                          {announcement.active ? 'Deactivate' : 'Activate'}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteAnnouncement(announcement.id)}
+                          className="px-3 h-8 rounded-full bg-red-500 text-white text-xs font-medium hover:bg-red-600 transition"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="bg-paper border-2 border-ink rounded-lg p-6 mb-8">
