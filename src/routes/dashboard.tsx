@@ -30,6 +30,7 @@ type Match = {
   away: { code: string; name: string; abbr: string };
   ai: [number, number];
   conf: number;
+  aiExplanation?: string;
   status: "open" | "locked" | "live" | "final";
   liveMin?: string;
   finalScore?: [number, number];
@@ -109,11 +110,12 @@ function Dashboard() {
         .from('ai_predictions')
         .select('*');
 
-      const aiPredictionsMap: Record<string, { scores: [number, number]; conf: number }> = {};
+      const aiPredictionsMap: Record<string, { scores: [number, number]; conf: number; explanation: string }> = {};
       aiPredictionsData?.forEach((ai: any) => {
         aiPredictionsMap[ai.match_id] = {
           scores: [ai.home_score, ai.away_score],
           conf: ai.confidence,
+          explanation: ai.explanation,
         };
       });
 
@@ -123,7 +125,7 @@ function Dashboard() {
       const formattedMatches: Match[] = matchesData?.map((m: DBMatch) => {
         const date = new Date(m.match_date);
         const prediction = predictionsMap[m.id];
-        const aiPred = aiPredictionsMap[m.id] || { scores: [1, 1], conf: 50 };
+        const aiPred = aiPredictionsMap[m.id] || { scores: [1, 1], conf: 50, explanation: 'AI prediction is not available yet.' };
         
         return {
           id: m.id,
@@ -137,6 +139,7 @@ function Dashboard() {
           away: { code: getFlag(m.away_team_code), name: m.away_team_name, abbr: m.away_team_code },
           ai: aiPred.scores as [number, number],
           conf: aiPred.conf,
+          aiExplanation: aiPred.explanation,
           status: m.status === 'scheduled' ? 'open' : m.status === 'live' ? 'live' : 'final',
           liveMin: m.minute ? `${m.minute}'` : undefined,
           finalScore: m.home_score !== null && m.away_score !== null ? [m.home_score, m.away_score] : undefined,
@@ -456,6 +459,7 @@ function PredictRow({ m, onSave }: { m: Match; onSave: (matchId: string, homeSco
   const { user } = useAuth();
   const [h, setH] = useState(m.yourScore?.[0] ?? m.ai[0]);
   const [a, setA] = useState(m.yourScore?.[1] ?? m.ai[1]);
+  const [showAiExplanation, setShowAiExplanation] = useState(false);
   const lockCutoff = new Date(m.matchDate).getTime() - 60 * 60 * 1000;
   const pastCutoff = Date.now() >= lockCutoff;
   const hasPrediction = !!m.yourScore;
@@ -507,7 +511,23 @@ function PredictRow({ m, onSave }: { m: Match; onSave: (matchId: string, homeSco
       </div>
       <div className="px-5 py-3 bg-secondary/30 border-t border-ink/10 flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-2 text-sm">
-          <Brain className="w-4 h-4 text-tomato" />
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowAiExplanation(prev => !prev)}
+              className="p-1 -m-1 rounded-full hover:bg-sunshine/50 transition"
+              aria-label="Show AI explanation"
+            >
+              <Brain className="w-4 h-4 text-tomato" />
+            </button>
+            {showAiExplanation && (
+              <div className="absolute left-0 bottom-7 z-20 w-72 max-w-[80vw] rounded-md border-2 border-ink bg-paper p-3 shadow-paper text-xs leading-relaxed text-foreground">
+                <div className="font-mono-num uppercase tracking-[0.2em] text-[9px] text-tomato mb-1">AI reasoning</div>
+                <p>{m.aiExplanation}</p>
+                <span className="absolute -bottom-1 left-3 w-2 h-2 rotate-45 border-r-2 border-b-2 border-ink bg-paper" />
+              </div>
+            )}
+          </div>
           <span className="text-muted-foreground">AI:</span>
           <span className="font-score text-lg">{m.ai[0]} — {m.ai[1]}</span>
           <span className="text-xs font-mono-num text-tomato">{m.conf}%</span>
