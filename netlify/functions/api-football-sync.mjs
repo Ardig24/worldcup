@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import ws from 'ws'
 
 const ADMIN_EMAILS = ['dendritech.io@gmail.com']
 const API_BASE_URL = 'https://v3.football.api-sports.io'
@@ -31,6 +32,9 @@ function createSupabaseAdmin() {
       auth: {
         persistSession: false,
         autoRefreshToken: false,
+      },
+      realtime: {
+        ws,
       },
     }
   )
