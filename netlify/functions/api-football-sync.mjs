@@ -33,7 +33,9 @@ function createSupabaseAdmin() {
         persistSession: false,
         autoRefreshToken: false,
       },
-      realtime: false,
+      realtime: {
+        ws,
+      },
     }
   )
 }
