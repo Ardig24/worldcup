@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import ws from 'ws'
+import { jwtDecode } from 'jwt-decode'
 
 const ADMIN_EMAILS = ['dendritech.io@gmail.com']
 const API_BASE_URL = 'https://v3.football.api-sports.io'
@@ -33,22 +33,23 @@ function createSupabaseAdmin() {
         persistSession: false,
         autoRefreshToken: false,
       },
-      realtime: {
-        ws,
-      },
     }
   )
 }
 
-async function requireAdmin(event, supabase) {
+async function requireAdmin(event) {
   const authHeader = event.headers.authorization || event.headers.Authorization || ''
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''
   if (!token) throw new Error('Missing authorization token')
 
-  const { data, error } = await supabase.auth.getUser(token)
-  if (error || !data.user) throw new Error('Invalid authorization token')
-  if (!ADMIN_EMAILS.includes(data.user.email || '')) throw new Error('Admin access required')
-  return data.user
+  try {
+    const decoded = jwtDecode(token)
+    if (!decoded.email) throw new Error('Invalid token: no email')
+    if (!ADMIN_EMAILS.includes(decoded.email)) throw new Error('Admin access required')
+    return decoded
+  } catch (error) {
+    throw new Error('Invalid authorization token')
+  }
 }
 
 async function fetchApiFootball(path, params = {}) {
@@ -309,8 +310,8 @@ export async function handler(event) {
   }
 
   try {
+    await requireAdmin(event)
     const supabase = createSupabaseAdmin()
-    await requireAdmin(event, supabase)
 
     const body = event.body ? JSON.parse(event.body) : {}
     const action = body.action
