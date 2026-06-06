@@ -55,6 +55,11 @@ export interface Database {
           home_score: number | null
           away_score: number | null
           minute: number | null
+          external_provider: string | null
+          external_id: string | null
+          external_league_id: string | null
+          external_season: string | null
+          last_synced_at: string | null
           created_at: string
           updated_at: string
         }
@@ -71,6 +76,11 @@ export interface Database {
           home_score?: number | null
           away_score?: number | null
           minute?: number | null
+          external_provider?: string | null
+          external_id?: string | null
+          external_league_id?: string | null
+          external_season?: string | null
+          last_synced_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -87,6 +97,11 @@ export interface Database {
           home_score?: number | null
           away_score?: number | null
           minute?: number | null
+          external_provider?: string | null
+          external_id?: string | null
+          external_league_id?: string | null
+          external_season?: string | null
+          last_synced_at?: string | null
           created_at?: string
           updated_at?: string
         }

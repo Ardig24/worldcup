@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { PageShell, Eyebrow } from '@/components/AppShell'
-import { Plus, Loader2, Trash2, Upload, Brain, Megaphone } from 'lucide-react'
+import { Plus, Loader2, Trash2, Upload, Brain, Megaphone, RefreshCw, Trophy } from 'lucide-react'
 import { generateAIPredictionsForMatches } from '@/lib/openrouter'
 import { useAuth } from '@/hooks/use-auth'
 
@@ -56,6 +56,8 @@ function Admin() {
   const [announcementBody, setAnnouncementBody] = useState('')
   const [announcementLoading, setAnnouncementLoading] = useState(false)
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
+  const [footballSyncLoading, setFootballSyncLoading] = useState<string | null>(null)
+  const [footballSyncResult, setFootballSyncResult] = useState('')
 
   useEffect(() => {
     if (!authLoading && (!user || !ADMIN_EMAILS.includes(user.email ?? ''))) {
@@ -277,6 +279,36 @@ function Admin() {
     }
   }
 
+  const handleFootballSync = async (action: 'import-fixtures' | 'sync-results' | 'grade-finals') => {
+    setError('')
+    setFootballSyncResult('')
+    setFootballSyncLoading(action)
+
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) throw new Error('Admin session is missing. Please sign in again.')
+
+      const response = await fetch('/.netlify/functions/api-football-sync', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action }),
+      })
+
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'Football sync failed')
+
+      setFootballSyncResult(JSON.stringify(result, null, 2))
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setFootballSyncLoading(null)
+    }
+  }
+
   const parseCSV = (content: string): any[] => {
     const lines = content.split('\n').filter(line => line.trim())
     const headers = lines[0].split(',').map(h => h.trim().toLowerCase())
@@ -380,21 +412,52 @@ function Admin() {
           </p>
 
           <div className="mt-6">
-            <button
-              onClick={handleGenerateAIPredictions}
-              disabled={loading}
-              className="inline-flex items-center gap-2 px-5 h-11 rounded-full bg-pitch-deep text-paper font-medium hover:bg-ink transition stamp disabled:opacity-50"
-            >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Brain className="w-4 h-4" />
-              )}
-              Generate AI Predictions
-            </button>
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={handleGenerateAIPredictions}
+                disabled={loading}
+                className="inline-flex items-center gap-2 px-5 h-11 rounded-full bg-pitch-deep text-paper font-medium hover:bg-ink transition stamp disabled:opacity-50"
+              >
+                {loading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Brain className="w-4 h-4" />
+                )}
+                Generate AI Predictions
+              </button>
+              <button
+                onClick={() => handleFootballSync('import-fixtures')}
+                disabled={!!footballSyncLoading}
+                className="inline-flex items-center gap-2 px-5 h-11 rounded-full bg-ink text-paper font-medium hover:bg-pitch-deep transition stamp disabled:opacity-50"
+              >
+                {footballSyncLoading === 'import-fixtures' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                Import API Fixtures
+              </button>
+              <button
+                onClick={() => handleFootballSync('sync-results')}
+                disabled={!!footballSyncLoading}
+                className="inline-flex items-center gap-2 px-5 h-11 rounded-full bg-tomato text-paper font-medium hover:bg-ink transition stamp disabled:opacity-50"
+              >
+                {footballSyncLoading === 'sync-results' ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                Sync Today's Results
+              </button>
+              <button
+                onClick={() => handleFootballSync('grade-finals')}
+                disabled={!!footballSyncLoading}
+                className="inline-flex items-center gap-2 px-5 h-11 rounded-full bg-sunshine text-ink border-2 border-ink font-medium hover:bg-paper transition stamp disabled:opacity-50"
+              >
+                {footballSyncLoading === 'grade-finals' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trophy className="w-4 h-4" />}
+                Grade Finals
+              </button>
+            </div>
             <p className="mt-2 text-xs text-muted-foreground">
-              Generates AI predictions for all matches that don't have one yet. Skips matches with placeholder teams.
+              Import fixtures once, sync final results after matches, then grade predictions for leaderboard points.
             </p>
+            {footballSyncResult && (
+              <pre className="mt-3 text-xs bg-sunshine/20 p-3 rounded-md overflow-x-auto">
+                {footballSyncResult}
+              </pre>
+            )}
           </div>
         </div>
 
