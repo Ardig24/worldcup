@@ -299,11 +299,16 @@ function Admin() {
       })
 
       const result = await response.json()
-      if (!response.ok) throw new Error(result.error || 'Football sync failed')
+      if (!response.ok) {
+        const errorMessage = result.error || result.message || 'Football sync failed'
+        console.error('Football sync error:', result)
+        throw new Error(errorMessage)
+      }
 
       setFootballSyncResult(JSON.stringify(result, null, 2))
     } catch (err: any) {
-      setError(err.message)
+      console.error('Football sync catch:', err)
+      setError(err.message || 'Unknown error occurred')
     } finally {
       setFootballSyncLoading(null)
     }
