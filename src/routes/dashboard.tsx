@@ -474,8 +474,11 @@ function PredictRow({ m, onSave }: { m: Match; onSave: (matchId: string, homeSco
       setH(0);
       setA(0);
     }
-    setSaved(false);
   }, [m.id, m.yourScore?.[0], m.yourScore?.[1]]);
+
+  useEffect(() => {
+    setSaved(false);
+  }, [m.id]);
 
   const handleLock = async () => {
     if (!user) {
