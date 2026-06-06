@@ -205,23 +205,25 @@ function Leaderboard() {
             visibleRows.map((row) => (
               <div
                 key={row.id}
-                className={`grid grid-cols-12 items-center px-5 py-3 border-b border-ink/10 last:border-0 ${row.you ? "bg-sunshine/40" : "hover:bg-secondary/40"}`}
+                className={`grid grid-cols-12 items-center gap-2 px-3 sm:px-5 py-3 border-b border-ink/10 last:border-0 ${row.you ? "bg-sunshine/40" : "hover:bg-secondary/40"}`}
               >
-                <div className="col-span-1 flex items-center gap-1.5">
+                <div className="col-span-2 sm:col-span-1 flex items-center gap-1 sm:gap-1.5 min-w-0">
                   <span className={`font-score text-2xl ${row.r <= 3 ? "text-tomato" : "text-foreground"}`}>{row.r}</span>
-                  <Trend t={row.trend} />
+                  <span className="hidden sm:inline-flex">
+                    <Trend t={row.trend} />
+                  </span>
                 </div>
-                <div className="col-span-5 flex items-center gap-3">
+                <div className="col-span-7 sm:col-span-5 flex items-center gap-2 sm:gap-3 min-w-0">
                   <Avatar url={row.avatarUrl} name={row.n} />
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{row.n}</span>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="font-medium truncate min-w-0">{row.n}</span>
                     {row.r === 1 && <Flame className="w-3.5 h-3.5 text-tomato" />}
-                    {row.you && <span className="px-1.5 py-0.5 rounded bg-ink text-paper text-[9px] font-mono-num uppercase tracking-widest">you</span>}
+                    {row.you && <span className="px-1.5 py-0.5 rounded bg-ink text-paper text-[9px] font-mono-num uppercase tracking-widest shrink-0">you</span>}
                   </div>
                 </div>
                 <div className="col-span-2 text-right text-muted-foreground font-mono-num text-sm hidden sm:block">{row.acc}%</div>
                 <div className="col-span-2 text-right text-muted-foreground font-mono-num text-sm hidden sm:block">{row.exact}</div>
-                <div className="col-span-2 text-right font-score text-2xl">{row.p}</div>
+                <div className="col-span-3 sm:col-span-2 text-right font-score text-2xl min-w-0">{row.p}</div>
               </div>
             ))
           )}

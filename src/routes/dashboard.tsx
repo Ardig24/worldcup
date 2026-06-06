@@ -455,11 +455,12 @@ function LiveMatchCard({ m }: { m: Match }) {
   );
 }
 
-function PredictRow({ m, onSave }: { m: Match; onSave: (matchId: string, homeScore: number, awayScore: number) => void }) {
+function PredictRow({ m, onSave }: { m: Match; onSave: (matchId: string, homeScore: number, awayScore: number) => void | Promise<void> }) {
   const { user } = useAuth();
-  const [h, setH] = useState(m.yourScore?.[0] ?? m.ai[0]);
-  const [a, setA] = useState(m.yourScore?.[1] ?? m.ai[1]);
+  const [h, setH] = useState(m.yourScore?.[0] ?? 0);
+  const [a, setA] = useState(m.yourScore?.[1] ?? 0);
   const [showAiExplanation, setShowAiExplanation] = useState(false);
+  const [saved, setSaved] = useState(false);
   const lockCutoff = new Date(m.matchDate).getTime() - 60 * 60 * 1000;
   const pastCutoff = Date.now() >= lockCutoff;
   const hasPrediction = !!m.yourScore;
@@ -469,16 +470,22 @@ function PredictRow({ m, onSave }: { m: Match; onSave: (matchId: string, homeSco
     if (m.yourScore) {
       setH(m.yourScore[0]);
       setA(m.yourScore[1]);
+    } else {
+      setH(0);
+      setA(0);
     }
+    setSaved(false);
   }, [m.id, m.yourScore?.[0], m.yourScore?.[1]]);
 
-  const handleLock = () => {
+  const handleLock = async () => {
     if (!user) {
       onSave(m.dbId || m.id, h, a);
       return;
     }
     if (!pastCutoff && m.dbId) {
-      onSave(m.dbId, h, a);
+      await onSave(m.dbId, h, a);
+      setSaved(true);
+      window.setTimeout(() => setSaved(false), 1800);
     }
   };
 
@@ -539,6 +546,8 @@ function PredictRow({ m, onSave }: { m: Match; onSave: (matchId: string, homeSco
         >
           {pastCutoff ? (
             <><CheckCircle2 className="w-3.5 h-3.5" /> Locked</>
+          ) : saved ? (
+            <><CheckCircle2 className="w-3.5 h-3.5" /> Updated</>
           ) : hasPrediction ? (
             <><Lock className="w-3.5 h-3.5" /> Update prediction</>
           ) : (
