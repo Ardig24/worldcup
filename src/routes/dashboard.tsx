@@ -485,7 +485,7 @@ function PredictRow({ m, onSave }: { m: Match; onSave: (matchId: string, homeSco
     if (!pastCutoff && m.dbId) {
       await onSave(m.dbId, h, a);
       setSaved(true);
-      window.setTimeout(() => setSaved(false), 1800);
+      window.setTimeout(() => setSaved(false), 1500);
     }
   };
 
@@ -542,7 +542,7 @@ function PredictRow({ m, onSave }: { m: Match; onSave: (matchId: string, homeSco
         <button
           onClick={handleLock}
           disabled={pastCutoff}
-          className={`inline-flex items-center gap-1.5 px-4 h-9 rounded-full text-sm font-medium transition stamp ${pastCutoff ? "bg-pitch-deep text-paper" : "bg-ink text-paper hover:bg-pitch-deep"} disabled:opacity-50`}
+          className={`inline-flex items-center justify-center gap-1.5 px-4 h-9 min-w-[148px] rounded-full text-sm font-medium transition stamp ${pastCutoff ? "bg-pitch-deep text-paper" : "bg-ink text-paper hover:bg-pitch-deep"} disabled:opacity-50`}
         >
           {pastCutoff ? (
             <><CheckCircle2 className="w-3.5 h-3.5" /> Locked</>
