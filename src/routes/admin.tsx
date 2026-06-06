@@ -279,7 +279,7 @@ function Admin() {
     }
   }
 
-  const handleFootballSync = async (action: 'import-fixtures' | 'sync-results' | 'grade-finals') => {
+  const handleFootballSync = async (action: 'link-fixtures' | 'import-fixtures' | 'sync-results' | 'grade-finals') => {
     setError('')
     setFootballSyncResult('')
     setFootballSyncLoading(action)
@@ -426,6 +426,14 @@ function Admin() {
                 Generate AI Predictions
               </button>
               <button
+                onClick={() => handleFootballSync('link-fixtures')}
+                disabled={!!footballSyncLoading}
+                className="inline-flex items-center gap-2 px-5 h-11 rounded-full bg-sunshine text-ink border-2 border-ink font-medium hover:bg-paper transition stamp disabled:opacity-50"
+              >
+                {footballSyncLoading === 'link-fixtures' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trophy className="w-4 h-4" />}
+                Link API Fixtures
+              </button>
+              <button
                 onClick={() => handleFootballSync('import-fixtures')}
                 disabled={!!footballSyncLoading}
                 className="inline-flex items-center gap-2 px-5 h-11 rounded-full bg-ink text-paper font-medium hover:bg-pitch-deep transition stamp disabled:opacity-50"
@@ -451,7 +459,7 @@ function Admin() {
               </button>
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-              Import fixtures once, sync final results after matches, then grade predictions for leaderboard points.
+              Link API fixtures to existing matches first to preserve predictions, then sync results and grade finals.
             </p>
             {footballSyncResult && (
               <pre className="mt-3 text-xs bg-sunshine/20 p-3 rounded-md overflow-x-auto">

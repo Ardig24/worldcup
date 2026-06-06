@@ -1,0 +1,104 @@
+id,home_team_code,home_team_name,away_team_code,away_team_name,match_date,venue,stage,status,home_score,away_score,minute,created_at,updated_at
+03b55f5e-02e3-4c24-b481-32d4242033b2,CIV,Ivory Coast,ECU,Ecuador,2026-06-15 00:00:00+00,Lincoln Financial Field (Philadelphia),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+06a6e7fd-0746-4ba2-9905-173fd23ae3e4,ARG,Argentina,ALG,Algeria,2026-06-17 01:00:00+00,Arrowhead Stadium (Kansas City),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+06df35d0-7176-4eb9-8049-ad091e1d57d5,GHA,Ghana,PAN,Panama,2026-06-18 00:00:00+00,BMO Field (Toronto),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+07ae6385-0f9c-41d2-b00d-b3c2af61fa1f,???,Group C Winner,???,Group F Runner-up,2026-06-29 18:00:00+00,NRG Stadium (Houston),round_of_32,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+0a4c29ec-1242-406c-9915-dae7544696fe,???,Group A Winner,???,Best 3rd (C/E/F/H/I),2026-07-01 01:00:00+00,Estadio Azteca (Mexico City),round_of_32,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+0d96746c-360f-444e-b104-197b33ca4548,AUS,Australia,TUR,Türkiye,2026-06-14 03:00:00+00,BC Place (Vancouver),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+0e2511c7-414a-4e9c-abac-59fb83ef8fd7,COL,Colombia,COD,Congo DR,2026-06-24 03:00:00+00,Estadio Akron (Guadalajara),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+101d4e26-f7aa-4737-b989-28ac56e54968,MEX,Mexico,KOR,South Korea,2026-06-19 01:00:00+00,Estadio Akron (Guadalajara),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+15fce727-687e-4c2a-b44a-e62d645b610d,MEX,Mexico,RSA,South Africa,2026-06-11 20:00:00+00,Estadio Azteca (Mexico City),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+1a66e63e-ee5a-4da4-b967-985a2a5dfb3b,NOR,Norway,SEN,Senegal,2026-06-23 01:00:00+00,MetLife Stadium (New York/New Jersey),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+1c20856c-4034-45c4-9eb4-8f69c8baf710,CUW,Curaçao,CIV,Ivory Coast,2026-06-25 21:00:00+00,Lincoln Financial Field (Philadelphia),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+1e191366-b264-4145-b84a-5e0cd3f24b44,GER,Germany,CUW,Curaçao,2026-06-14 18:00:00+00,NRG Stadium (Houston),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+1ea588d7-3ccc-4660-a3dd-a26e9671779e,ECU,Ecuador,GER,Germany,2026-06-25 21:00:00+00,MetLife Stadium (New York/New Jersey),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+1f0625bc-84e6-490c-b518-efb7c31b3b21,???,Group K Winner,???,Group L Runner-up,2026-07-04 00:00:00+00,Estadio Akron (Guadalajara),round_of_32,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+1fe52ff9-4189-485c-82f6-993784848130,SCO,Scotland,MAR,Morocco,2026-06-19 23:00:00+00,Gillette Stadium (Boston),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+2771d869-8b17-420d-b4b6-472104be34aa,???,Round of 32 Winner,???,Round of 32 Winner,2026-07-04 20:00:00+00,"Various (e.g. Philadelphia, Atlanta)",round_of_16,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+27cf691c-8e5b-4d3a-9426-90aba2981162,GER,Germany,CIV,Ivory Coast,2026-06-21 21:00:00+00,BMO Field (Toronto),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+29ad3f11-9152-4bc8-94fc-6c81ebc7c6b4,???,Group L Winner,???,Group K Runner-up,2026-07-04 20:00:00+00,Lincoln Financial Field (Philadelphia),round_of_32,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+3052555d-77cf-4900-8098-8911948b7286,USA,United States,PAR,Paraguay,2026-06-13 01:00:00+00,SoFi Stadium (Los Angeles),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+3179414c-2690-4942-9e7e-232ad5aea696,ARG,Argentina,AUT,Austria,2026-06-22 18:00:00+00,AT&T Stadium (Dallas),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+31f5f8f5-1d7f-4ab1-98ca-55bf2180bd4d,PAR,Paraguay,AUS,Australia,2026-06-26 01:00:00+00,Levi's Stadium (San Francisco Bay Area),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+3743f969-db3d-422c-89a8-d608a2cb765d,???,Semifinal Winner,???,Semifinal Winner,2026-07-19 20:00:00+00,MetLife Stadium (New York/New Jersey),final,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+3921aa82-6ca6-4e0b-aed9-97da5585a1aa,CPV,Cabo Verde,KSA,Saudi Arabia,2026-06-27 01:00:00+00,NRG Stadium (Houston),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+419ba1f5-6bb2-41cc-94e8-2aed3fce17c6,???,Round of 32 Winner,???,Round of 32 Winner,2026-07-07 20:00:00+00,Various,round_of_16,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+43f2ea7a-4cf9-4dfb-91a6-3319c12e673a,ECU,Ecuador,CUW,Curaçao,2026-06-22 01:00:00+00,Arrowhead Stadium (Kansas City),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+47a08e6f-cb65-4b84-a82d-f3209aa545ba,???,Group D Winner,???,Group B Runner-up,2026-07-02 01:00:00+00,Arrowhead Stadium (Kansas City),round_of_32,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+4af958d5-d2e1-4b7a-9fa4-bd6a76d4ee3c,???,Quarterfinal Winner,???,Quarterfinal Winner,2026-07-14 20:00:00+00,MetLife or similar,semifinal,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+4d6ee875-c4e0-4d07-bbaf-e641214a67fe,???,Quarterfinal Winner,???,Quarterfinal Winner,2026-07-15 00:00:00+00,MetLife or similar,semifinal,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+4e7228ce-3c14-4028-b53b-fd44743b0489,BRA,Brazil,HAI,Haiti,2026-06-20 01:00:00+00,Lincoln Financial Field (Philadelphia),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+524daa13-95b1-461a-9363-7b35ad095a8f,COD,Congo DR,UZB,Uzbekistan,2026-06-28 00:30:00+00,Mercedes-Benz Stadium (Atlanta),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+54befe14-d01e-4e9e-bb74-c7f2d3c61037,EGY,Egypt,IRN,Iran,2026-06-27 04:00:00+00,Lumen Field (Seattle),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+57216bb6-613f-4ee1-b5a2-4e70a1b87423,ALG,Algeria,AUT,Austria,2026-06-28 03:00:00+00,Arrowhead Stadium (Kansas City),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+5ce51c24-14de-4add-bd14-c60d07032736,TUR,Türkiye,USA,United States,2026-06-26 01:00:00+00,SoFi Stadium (Los Angeles),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+5f48c0f1-a0e3-4e1b-8514-c468634585a3,TUN,Tunisia,NED,Netherlands,2026-06-25 00:00:00+00,Arrowhead Stadium (Kansas City),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+6789d5a6-9514-4485-857e-d45fd5d17ce1,???,Group F Winner,???,Group C Runner-up,2026-06-30 01:00:00+00,Estadio BBVA (Monterrey),round_of_32,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+690a76a1-0c8b-497e-8a38-1dc13d3df2b2,TUR,Türkiye,PAR,Paraguay,2026-06-20 04:00:00+00,Levi's Stadium (San Francisco Bay Area),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+6ab3fbee-4abd-4f73-96df-b250e9270bfc,BRA,Brazil,MAR,Morocco,2026-06-14 00:00:00+00,MetLife Stadium (New York/New Jersey),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+6e7112fe-0362-4856-909f-3fe38d16dc60,NZL,New Zealand,EGY,Egypt,2026-06-22 01:00:00+00,BC Place (Vancouver),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+6e7121dd-0a1f-4ba2-a809-168609875c0a,???,Round of 16 Winner,???,Round of 16 Winner,2026-07-10 00:00:00+00,Various,quarterfinal,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+6e7fbf06-7362-4a68-80f5-3b59776fd0c1,POR,Portugal,UZB,Uzbekistan,2026-06-23 18:00:00+00,NRG Stadium (Houston),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+70a7db5e-ed68-44bb-834a-4cfcb463709d,TUN,Tunisia,JPN,Japan,2026-06-21 03:00:00+00,Estadio BBVA (Monterrey),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+728629fb-53a2-4127-b7db-355625e721e2,URU,Uruguay,CPV,Cabo Verde,2026-06-22 00:00:00+00,Hard Rock Stadium (Miami),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+76843828-2a73-4423-92a9-abdb7fbaf799,CRO,Croatia,GHA,Ghana,2026-06-27 22:00:00+00,Lincoln Financial Field (Philadelphia),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+7702971e-18a5-4582-bbec-f514acbf7ab5,URU,Uruguay,ESP,Spain,2026-06-27 01:00:00+00,Estadio Akron (Guadalajara),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+77d2bfb6-8723-4285-8a4a-19aece09b233,???,Group J Winner,???,Best 3rd (A/B/D/E/G),2026-07-03 20:00:00+00,Hard Rock Stadium (Miami),round_of_32,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+79b1cafa-7801-4c92-92aa-9995e0cd50fc,???,Group A Runner-up,???,Group B Runner-up,2026-06-28 20:00:00+00,SoFi Stadium (Los Angeles),round_of_32,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+7a60024e-c01e-4504-b751-a58813cfc0fc,POR,Portugal,COD,Congo DR,2026-06-17 18:00:00+00,NRG Stadium (Houston),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+7b286513-5f73-4e4c-8ed2-583465483104,JOR,Jordan,ALG,Algeria,2026-06-23 04:00:00+00,Levi's Stadium (San Francisco Bay Area),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+7bc2ba81-ce3e-42ac-8c52-558d1d16917c,CAN,Canada,BIH,Bosnia and Herzegovina,2026-06-12 20:00:00+00,BMO Field (Toronto),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+80f11aad-ca5d-4b20-8df2-405b695db9ae,ENG,England,GHA,Ghana,2026-06-23 21:00:00+00,Gillette Stadium (Boston),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+8884d5ba-fa7e-4608-a5df-27e06b0b3446,JOR,Jordan,ARG,Argentina,2026-06-28 03:00:00+00,AT&T Stadium (Dallas),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+8a8a896d-4de6-4d80-b059-2f71b7bc4fc4,SWE,Sweden,TUN,Tunisia,2026-06-15 03:00:00+00,Estadio BBVA (Monterrey),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+8f81dc1c-c1e2-4853-81ee-a43ffec9ecb3,SCO,Scotland,BRA,Brazil,2026-06-25 00:00:00+00,Hard Rock Stadium (Miami),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+8f9598c3-8413-4b05-a66b-1164e3011ae9,BIH,Bosnia and Herzegovina,QAT,Qatar,2026-06-24 20:00:00+00,Lumen Field (Seattle),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+92c99bc2-0af2-4f85-aa34-96e70421a4c2,???,Semifinal Loser,???,Semifinal Loser,2026-07-18 20:00:00+00,TBD,third_place,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+93adc052-fd0e-423b-a281-b4f0ea454ab4,AUT,Austria,JOR,Jordan,2026-06-17 03:00:00+00,Levi's Stadium (San Francisco Bay Area),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+9477d479-4230-4038-b115-cb2d27f0ef0c,KSA,Saudi Arabia,URU,Uruguay,2026-06-16 00:00:00+00,Hard Rock Stadium (Miami),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+9c20acb8-2c3e-403c-8eef-bb271264371c,???,Round of 32 Winner,???,Round of 32 Winner,2026-07-05 20:00:00+00,Various,round_of_16,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+9da01188-f5cc-4fb2-90d5-209b99218b76,???,Group J Runner-up,???,Group I Runner-up? (adjusted),2026-07-05 01:00:00+00,NRG Stadium (Houston),round_of_32,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+9e2c9228-b854-450c-b072-7902cc4f15c0,???,Group E Runner-up,???,Group I Runner-up,2026-06-30 18:00:00+00,AT&T Stadium (Dallas),round_of_32,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+9f2eb10c-fb07-45ad-8ce5-dcde5927450a,FRA,France,IRQ,Iraq,2026-06-22 22:00:00+00,Lincoln Financial Field (Philadelphia),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+a06363ad-a3cc-4814-b980-05c1f28c932c,JPN,Japan,SWE,Sweden,2026-06-25 00:00:00+00,AT&T Stadium (Dallas),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+a1b3df20-0fef-4037-8179-33ea0e6717e9,SEN,Senegal,IRQ,Iraq,2026-06-26 20:00:00+00,BMO Field (Toronto),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+a4afbb4a-079b-4266-9d86-8699d4a5dc75,FRA,France,SEN,Senegal,2026-06-16 20:00:00+00,MetLife Stadium (New York/New Jersey),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+a4fbb63c-6d96-45ed-bdb6-5d8001fa4b9e,???,Group E Winner,???,Best 3rd (A/B/C/D/F),2026-06-29 21:30:00+00,Gillette Stadium (Boston),round_of_32,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+a69ee01e-c790-4052-94f3-aa7aa55f6e03,ESP,Spain,KSA,Saudi Arabia,2026-06-21 17:00:00+00,Mercedes-Benz Stadium (Atlanta),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+b3a82279-a424-4401-af9c-333740a3d454,???,Round of 16 Winner,???,Round of 16 Winner,2026-07-10 20:00:00+00,Various,quarterfinal,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+b50aa681-1381-41f9-b0a9-95b96b0b6ffd,BEL,Belgium,IRN,Iran,2026-06-21 20:00:00+00,SoFi Stadium (Los Angeles),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+b716d8b0-f7ce-4dd5-87f2-281cff709f55,BEL,Belgium,EGY,Egypt,2026-06-15 20:00:00+00,Lumen Field (Seattle),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+b8e23637-3165-4545-9ab5-f368e1aa2b13,QAT,Qatar,SUI,Switzerland,2026-06-13 22:00:00+00,Levi's Stadium (San Francisco Bay Area),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+bbb3cfeb-a41f-43d6-ae09-6291cfcabf5a,???,Group G Winner,???,Group H Runner-up,2026-07-02 20:00:00+00,Lumen Field (Seattle),round_of_32,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+bc65468d-dabd-40f9-89de-1fb9fc08b280,NZL,New Zealand,BEL,Belgium,2026-06-27 04:00:00+00,BC Place (Vancouver),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+bc9af0c2-ec99-4e64-af48-457d725f1e85,MAR,Morocco,HAI,Haiti,2026-06-25 00:00:00+00,Mercedes-Benz Stadium (Atlanta),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+beb2d5c1-a960-411d-89ec-1566b0f2cc46,???,Round of 16 Winner,???,Round of 16 Winner,2026-07-09 20:00:00+00,"Various (e.g. Foxborough, Dallas)",quarterfinal,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+c232f341-f155-44d1-99c6-88f2a1a3c0e9,PAN,Panama,ENG,England,2026-06-27 22:00:00+00,MetLife Stadium (New York/New Jersey),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+c24c80fb-b50f-4de9-9239-62e287b12896,???,Round of 16 Winner,???,Round of 16 Winner,2026-07-11 00:00:00+00,Various,quarterfinal,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+c46c7b6a-4d7e-4c89-8dd7-05343154754f,???,Round of 32 Winner,???,Round of 32 Winner,2026-07-07 00:00:00+00,Various,round_of_16,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+c7a366a9-c424-4298-9c73-60288f475093,CZE,Czechia,RSA,South Africa,2026-06-18 17:00:00+00,Mercedes-Benz Stadium (Atlanta),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+c9b85c95-f8a9-4aad-bfe0-3e2aa547339e,PAN,Panama,CRO,Croatia,2026-06-24 00:00:00+00,BMO Field (Toronto),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+cce4145e-980f-498c-b081-c7a1893acd68,???,Group I Winner,???,Best 3rd (C/D/F/G/H),2026-06-30 22:00:00+00,MetLife Stadium (New York/New Jersey),round_of_32,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+ceaa6f44-c0e4-4039-9fa0-0e6bcdfa80ed,SUI,Switzerland,BIH,Bosnia and Herzegovina,2026-06-18 20:00:00+00,SoFi Stadium (Los Angeles),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+cf3fbce1-9e5f-4e0b-ab03-8789a9894b88,IRQ,Iraq,NOR,Norway,2026-06-16 23:00:00+00,Gillette Stadium (Boston),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+d26e3d2b-dc6b-4702-801b-dd8300136b78,KOR,South Korea,CZE,Czechia,2026-06-12 03:00:00+00,Estadio Akron (Guadalajara),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+d4b32923-dd1e-4e7f-be11-3bff69f48b98,???,Round of 32 Winner,???,Round of 32 Winner,2026-07-05 00:00:00+00,Various,round_of_16,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+da6c2e20-cee8-47c5-8b0a-de8641adda36,NED,Netherlands,SWE,Sweden,2026-06-20 18:00:00+00,NRG Stadium (Houston),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+da78d9d6-7b53-4c1f-a1ff-9d0640e1fb97,NED,Netherlands,JPN,Japan,2026-06-14 21:00:00+00,AT&T Stadium (Dallas),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+db199ecf-ec95-4e7f-8196-519074ccb18c,RSA,South Africa,KOR,South Korea,2026-06-25 01:00:00+00,Estadio BBVA (Monterrey),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+dd87e5e8-a4fd-4117-aa4a-c070c0f5ef81,NOR,Norway,FRA,France,2026-06-26 20:00:00+00,Gillette Stadium (Boston),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+e0250b45-7893-4bad-b491-85bcc6060186,???,Round of 32 Winner,???,Round of 32 Winner,2026-07-06 20:00:00+00,Various,round_of_16,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+e030c78b-0645-4345-b136-5624498161c0,???,Round of 32 Winner,???,Round of 32 Winner,2026-07-08 00:00:00+00,Various,round_of_16,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+e0624473-fdd4-47e1-bff4-47caa8d775fc,IRN,Iran,NZL,New Zealand,2026-06-16 01:00:00+00,SoFi Stadium (Los Angeles),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+e282cedc-692f-4fec-a1c5-2264bd12d2e0,CAN,Canada,QAT,Qatar,2026-06-18 23:00:00+00,BC Place (Vancouver),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+e47af935-5f98-4b30-b193-37b681d06d1d,???,Group B Winner,???,Group D Runner-up,2026-07-01 20:00:00+00,BC Place (Vancouver),round_of_32,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+e5902a85-6508-43df-9211-0dec0d67365a,SUI,Switzerland,CAN,Canada,2026-06-24 20:00:00+00,BC Place (Vancouver),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+ebe5d55d-69bb-49f7-bce3-2651e3da7204,UZB,Uzbekistan,COL,Colombia,2026-06-18 03:00:00+00,Estadio Azteca (Mexico City),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+eda9dae0-be09-4cf2-a322-7d3f67cc3cf6,ENG,England,CRO,Croatia,2026-06-17 21:00:00+00,AT&T Stadium (Dallas),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+edb7287b-ae06-4235-b5b1-698f9208eb45,COL,Colombia,POR,Portugal,2026-06-28 00:30:00+00,Hard Rock Stadium (Miami),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+ef353dbd-0423-4407-b926-cd38a3b53bd3,???,Group H Winner,???,Group G Runner-up,2026-07-03 01:00:00+00,Mercedes-Benz Stadium (Atlanta),round_of_32,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+f2149d9e-3fa9-4bf0-b5b6-62580b1a14b2,USA,United States,AUS,Australia,2026-06-20 20:00:00+00,Lumen Field (Seattle),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+f88a53e1-fcbe-46d6-8b33-61ef55573a2f,HAI,Haiti,SCO,Scotland,2026-06-14 01:00:00+00,Gillette Stadium (Boston),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+f924c1df-78eb-4a50-a034-5ade65819021,CZE,Czechia,MEX,Mexico,2026-06-25 01:00:00+00,Estadio Azteca (Mexico City),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+fd811042-1ae5-4456-99d9-8a66cb5bc68b,ESP,Spain,CPV,Cabo Verde,2026-06-15 17:00:00+00,Mercedes-Benz Stadium (Atlanta),group,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00
+ff485403-5d63-4943-988b-1d8cf0e3a84b,???,Round of 32 Winner,???,Round of 32 Winner,2026-07-06 00:00:00+00,Various,round_of_16,scheduled,,,,2026-05-12 18:34:17.625926+00,2026-05-12 18:34:17.625926+00

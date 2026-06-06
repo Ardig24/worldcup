@@ -187,6 +187,72 @@ async function importFixtures(supabase) {
   return { imported: rows.length, updated: rows.length, total: rows.length }
 }
 
+async function linkFixturesToExistingMatches(supabase) {
+  const league = process.env.API_FOOTBALL_LEAGUE_ID || '1217'
+  const season = process.env.API_FOOTBALL_SEASON || '2026'
+  const fixtures = await fetchApiFootball('/fixtures', { league, season })
+
+  const { data: existingMatches, error: existingError } = await supabase
+    .from('matches')
+    .select('id, home_team_name, away_team_name, match_date, external_provider, external_id')
+    .is('external_provider', null)
+
+  if (existingError) throw existingError
+  if (!existingMatches || existingMatches.length === 0) {
+    return { linked: 0, inserted: 0, total: fixtures.length, message: 'No existing matches to link' }
+  }
+
+  const existingMap = new Map()
+  for (const match of existingMatches) {
+    const key = `${match.home_team_name.toLowerCase()}-${match.away_team_name.toLowerCase()}-${match.match_date.slice(0, 10)}`
+    existingMap.set(key, match)
+  }
+
+  let linked = 0
+  let inserted = 0
+  const toInsert = []
+
+  for (const item of fixtures) {
+    const normalized = normalizeFixture(item)
+    const homeName = normalized.home_team_name.toLowerCase()
+    const awayName = normalized.away_team_name.toLowerCase()
+    const dateKey = normalized.match_date.slice(0, 10)
+    const key = `${homeName}-${awayName}-${dateKey}`
+
+    const existing = existingMap.get(key)
+    if (existing) {
+      const { error } = await supabase
+        .from('matches')
+        .update({
+          external_provider: normalized.external_provider,
+          external_id: normalized.external_id,
+          external_league_id: normalized.external_league_id,
+          external_season: normalized.external_season,
+          venue: normalized.venue,
+          last_synced_at: normalized.last_synced_at,
+        })
+        .eq('id', existing.id)
+
+      if (error) throw error
+      linked += 1
+      existingMap.delete(key)
+    } else {
+      toInsert.push(normalized)
+    }
+  }
+
+  if (toInsert.length > 0) {
+    const { error } = await supabase
+      .from('matches')
+      .insert(toInsert)
+
+    if (error) throw error
+    inserted = toInsert.length
+  }
+
+  return { linked, inserted, total: fixtures.length, remainingManual: existingMap.size }
+}
+
 async function syncResults(supabase, date) {
   const league = process.env.API_FOOTBALL_LEAGUE_ID || '1217'
   const season = process.env.API_FOOTBALL_SEASON || '2026'
@@ -244,6 +310,11 @@ export async function handler(event) {
 
     const body = event.body ? JSON.parse(event.body) : {}
     const action = body.action
+
+    if (action === 'link-fixtures') {
+      const result = await linkFixturesToExistingMatches(supabase)
+      return json(200, { ok: true, action, ...result })
+    }
 
     if (action === 'import-fixtures') {
       const result = await importFixtures(supabase)
