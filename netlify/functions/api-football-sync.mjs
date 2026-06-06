@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 import { jwtDecode } from 'jwt-decode'
 
 const ADMIN_EMAILS = ['dendritech.io@gmail.com']
+let supabaseClient = null
 const API_BASE_URL = 'https://v3.football.api-sports.io'
 const PROVIDER = 'api-football'
 const FINAL_STATUSES = new Set(['FT', 'AET', 'PEN'])
