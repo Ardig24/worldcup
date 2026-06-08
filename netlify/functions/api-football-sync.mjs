@@ -1,8 +1,6 @@
-import { createClient } from '@supabase/supabase-js'
 import { jwtDecode } from 'jwt-decode'
 
 const ADMIN_EMAILS = ['dendritech.io@gmail.com']
-let supabaseClient = null
 const API_BASE_URL = 'https://v3.football.api-sports.io'
 const PROVIDER = 'api-football'
 const FINAL_STATUSES = new Set(['FT', 'AET', 'PEN'])
@@ -25,17 +23,47 @@ function requireEnv(name) {
   return value
 }
 
-function createSupabaseAdmin() {
-  return createClient(
-    requireEnv('VITE_SUPABASE_URL'),
-    requireEnv('SUPABASE_SERVICE_ROLE_KEY'),
-    {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-      },
-    }
-  )
+function dbConfig() {
+  return {
+    url: requireEnv('VITE_SUPABASE_URL').replace(/\/$/, ''),
+    key: requireEnv('SUPABASE_SERVICE_ROLE_KEY'),
+  }
+}
+
+async function dbRequest(method, table, { query = '', body, prefer } = {}) {
+  const { url, key } = dbConfig()
+  const headers = {
+    apikey: key,
+    Authorization: `Bearer ${key}`,
+    'Content-Type': 'application/json',
+  }
+  if (prefer) headers.Prefer = prefer
+
+  const response = await fetch(`${url}/rest/v1/${table}${query ? `?${query}` : ''}`, {
+    method,
+    headers,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  })
+
+  const text = await response.text()
+  if (!response.ok) {
+    throw new Error(`Supabase ${method} ${table} failed: ${response.status} ${text}`)
+  }
+  return text ? JSON.parse(text) : null
+}
+
+const db = {
+  select: (table, query) => dbRequest('GET', table, { query }),
+  insert: (table, rows) =>
+    dbRequest('POST', table, { body: rows, prefer: 'return=representation' }),
+  update: (table, query, body) =>
+    dbRequest('PATCH', table, { query, body, prefer: 'return=representation' }),
+  upsert: (table, rows, onConflict) =>
+    dbRequest('POST', table, {
+      query: onConflict ? `on_conflict=${onConflict}` : '',
+      body: rows,
+      prefer: 'resolution=merge-duplicates,return=representation',
+    }),
 }
 
 async function requireAdmin(event) {
@@ -137,24 +165,23 @@ function predictionPoints(predictedHome, predictedAway, actualHome, actualAway) 
   return predictedOutcome === actualOutcome ? 1 : 0
 }
 
-async function gradeMatch(supabase, match) {
+async function gradeMatch(match) {
   if (match.status !== 'final' || match.home_score === null || match.away_score === null) {
     return { graded: 0 }
   }
 
-  const { data: predictions, error: predictionsError } = await supabase
-    .from('predictions')
-    .select('id, home_score, away_score')
-    .eq('match_id', match.id)
+  const predictions = await db.select(
+    'predictions',
+    `select=id,home_score,away_score&match_id=eq.${match.id}`
+  )
 
-  if (predictionsError) throw predictionsError
   if (!predictions || predictions.length === 0) return { graded: 0 }
 
-  const { data: aiPrediction } = await supabase
-    .from('ai_predictions')
-    .select('home_score, away_score')
-    .eq('match_id', match.id)
-    .maybeSingle()
+  const aiPredictions = await db.select(
+    'ai_predictions',
+    `select=home_score,away_score&match_id=eq.${match.id}&limit=1`
+  )
+  const aiPrediction = aiPredictions && aiPredictions[0]
 
   const aiPoints = aiPrediction
     ? predictionPoints(aiPrediction.home_score, aiPrediction.away_score, match.home_score, match.away_score)
@@ -162,22 +189,17 @@ async function gradeMatch(supabase, match) {
 
   for (const prediction of predictions) {
     const points = predictionPoints(prediction.home_score, prediction.away_score, match.home_score, match.away_score)
-    const { error } = await supabase
-      .from('predictions')
-      .update({
-        points_earned: points,
-        beat_ai: aiPoints === null ? false : points > aiPoints,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', prediction.id)
-
-    if (error) throw error
+    await db.update('predictions', `id=eq.${prediction.id}`, {
+      points_earned: points,
+      beat_ai: aiPoints === null ? false : points > aiPoints,
+      updated_at: new Date().toISOString(),
+    })
   }
 
   return { graded: predictions.length }
 }
 
-async function importFixtures(supabase) {
+async function importFixtures() {
   const league = process.env.API_FOOTBALL_LEAGUE_ID || '1217'
   const season = process.env.API_FOOTBALL_SEASON || '2026'
   const fixtures = await fetchApiFootball('/fixtures', { league, season })
@@ -185,25 +207,20 @@ async function importFixtures(supabase) {
 
   if (rows.length === 0) return { imported: 0, updated: 0, total: 0 }
 
-  const { error } = await supabase
-    .from('matches')
-    .upsert(rows, { onConflict: 'external_provider,external_id' })
-
-  if (error) throw error
+  await db.upsert('matches', rows, 'external_provider,external_id')
   return { imported: rows.length, updated: rows.length, total: rows.length }
 }
 
-async function linkFixturesToExistingMatches(supabase) {
+async function linkFixturesToExistingMatches() {
   const league = process.env.API_FOOTBALL_LEAGUE_ID || '1217'
   const season = process.env.API_FOOTBALL_SEASON || '2026'
   const fixtures = await fetchApiFootball('/fixtures', { league, season })
 
-  const { data: existingMatches, error: existingError } = await supabase
-    .from('matches')
-    .select('id, home_team_name, away_team_name, match_date, external_provider, external_id')
-    .is('external_provider', null)
+  const existingMatches = await db.select(
+    'matches',
+    'select=id,home_team_name,away_team_name,match_date,external_provider,external_id&external_provider=is.null'
+  )
 
-  if (existingError) throw existingError
   if (!existingMatches || existingMatches.length === 0) {
     return { linked: 0, inserted: 0, total: fixtures.length, message: 'No existing matches to link' }
   }
@@ -227,19 +244,14 @@ async function linkFixturesToExistingMatches(supabase) {
 
     const existing = existingMap.get(key)
     if (existing) {
-      const { error } = await supabase
-        .from('matches')
-        .update({
-          external_provider: normalized.external_provider,
-          external_id: normalized.external_id,
-          external_league_id: normalized.external_league_id,
-          external_season: normalized.external_season,
-          venue: normalized.venue,
-          last_synced_at: normalized.last_synced_at,
-        })
-        .eq('id', existing.id)
-
-      if (error) throw error
+      await db.update('matches', `id=eq.${existing.id}`, {
+        external_provider: normalized.external_provider,
+        external_id: normalized.external_id,
+        external_league_id: normalized.external_league_id,
+        external_season: normalized.external_season,
+        venue: normalized.venue,
+        last_synced_at: normalized.last_synced_at,
+      })
       linked += 1
       existingMap.delete(key)
     } else {
@@ -248,18 +260,14 @@ async function linkFixturesToExistingMatches(supabase) {
   }
 
   if (toInsert.length > 0) {
-    const { error } = await supabase
-      .from('matches')
-      .insert(toInsert)
-
-    if (error) throw error
+    await db.insert('matches', toInsert)
     inserted = toInsert.length
   }
 
   return { linked, inserted, total: fixtures.length, remainingManual: existingMap.size }
 }
 
-async function syncResults(supabase, date) {
+async function syncResults(date) {
   const league = process.env.API_FOOTBALL_LEAGUE_ID || '1217'
   const season = process.env.API_FOOTBALL_SEASON || '2026'
   const fixtures = await fetchApiFootball('/fixtures', { league, season, date })
@@ -269,36 +277,29 @@ async function syncResults(supabase, date) {
   let graded = 0
 
   for (const row of rows) {
-    const { data, error } = await supabase
-      .from('matches')
-      .upsert(row, { onConflict: 'external_provider,external_id' })
-      .select('id, status, home_score, away_score')
-      .single()
-
-    if (error) throw error
+    const result = await db.upsert('matches', row, 'external_provider,external_id')
+    const saved = Array.isArray(result) ? result[0] : result
     updated += 1
 
-    if (data.status === 'final') {
+    if (saved && saved.status === 'final') {
       finalized += 1
-      const result = await gradeMatch(supabase, data)
-      graded += result.graded
+      const gradeResult = await gradeMatch(saved)
+      graded += gradeResult.graded
     }
   }
 
   return { updated, finalized, graded, total: rows.length, date }
 }
 
-async function gradeFinalMatches(supabase) {
-  const { data: matches, error } = await supabase
-    .from('matches')
-    .select('id, status, home_score, away_score')
-    .eq('status', 'final')
-
-  if (error) throw error
+async function gradeFinalMatches() {
+  const matches = await db.select(
+    'matches',
+    'select=id,status,home_score,away_score&status=eq.final'
+  )
 
   let graded = 0
   for (const match of matches || []) {
-    const result = await gradeMatch(supabase, match)
+    const result = await gradeMatch(match)
     graded += result.graded
   }
 
@@ -312,29 +313,28 @@ export async function handler(event) {
 
   try {
     await requireAdmin(event)
-    const supabase = createSupabaseAdmin()
 
     const body = event.body ? JSON.parse(event.body) : {}
     const action = body.action
 
     if (action === 'link-fixtures') {
-      const result = await linkFixturesToExistingMatches(supabase)
+      const result = await linkFixturesToExistingMatches()
       return json(200, { ok: true, action, ...result })
     }
 
     if (action === 'import-fixtures') {
-      const result = await importFixtures(supabase)
+      const result = await importFixtures()
       return json(200, { ok: true, action, ...result })
     }
 
     if (action === 'sync-results') {
       const date = body.date || new Date().toISOString().slice(0, 10)
-      const result = await syncResults(supabase, date)
+      const result = await syncResults(date)
       return json(200, { ok: true, action, ...result })
     }
 
     if (action === 'grade-finals') {
-      const result = await gradeFinalMatches(supabase)
+      const result = await gradeFinalMatches()
       return json(200, { ok: true, action, ...result })
     }
 
