@@ -111,12 +111,39 @@ function teamCode(team) {
   return (cleaned || 'TBD').slice(0, 3).padEnd(3, 'X')
 }
 
+const TEAM_ALIASES = {
+  'turkiye': 'turkey',
+  'bosnia and herzegovina': 'bosnia-herzegovina',
+  'cabo verde': 'cape verde islands',
+  'cape verde': 'cape verde islands',
+  'south korea': 'south korea',
+  'korea republic': 'south korea',
+  'czech republic': 'czechia',
+  'usa': 'united states',
+  'ir iran': 'iran',
+}
+
+function normalizeTeamName(name) {
+  const base = String(name || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+  const aliased = TEAM_ALIASES[base] || base
+  return aliased.replace(/[^a-z0-9]/g, '')
+}
+
+function pairKey(homeName, awayName) {
+  return `${normalizeTeamName(homeName)}-${normalizeTeamName(awayName)}`
+}
+
 function mapStage(stage) {
   const value = String(stage || '').toUpperCase()
-  if (value === 'LAST_16') return 'round16'
-  if (value === 'QUARTER_FINALS') return 'quarter'
-  if (value === 'SEMI_FINALS') return 'semi'
-  if (value === 'THIRD_PLACE') return 'third'
+  if (value === 'LAST_32') return 'round_of_32'
+  if (value === 'LAST_16') return 'round_of_16'
+  if (value === 'QUARTER_FINALS') return 'quarterfinal'
+  if (value === 'SEMI_FINALS') return 'semifinal'
+  if (value === 'THIRD_PLACE') return 'third_place'
   if (value === 'FINAL') return 'final'
   return 'group'
 }
@@ -215,33 +242,49 @@ async function linkFixturesToExistingMatches() {
   const competition = process.env.FOOTBALL_DATA_COMPETITION || 'WC'
   const fixtures = await fetchFootballData(`/competitions/${competition}/matches`)
 
-  const existingMatches = await db.select(
+  // All existing matches: used to detect already-linked external_ids (idempotency)
+  const allMatches = await db.select(
     'matches',
-    'select=id,home_team_name,away_team_name,match_date,external_provider,external_id&external_provider=is.null'
+    'select=id,home_team_name,away_team_name,match_date,stage,external_provider,external_id'
   )
 
-  if (!existingMatches || existingMatches.length === 0) {
-    return { linked: 0, inserted: 0, total: fixtures.length, message: 'No existing matches to link' }
-  }
+  const linkedExternalIds = new Set(
+    (allMatches || [])
+      .filter((m) => m.external_id)
+      .map((m) => String(m.external_id))
+  )
 
-  const existingMap = new Map()
-  for (const match of existingMatches) {
-    const key = `${match.home_team_name.toLowerCase()}-${match.away_team_name.toLowerCase()}-${match.match_date.slice(0, 10)}`
-    existingMap.set(key, match)
+  // Unlinked GROUP-stage matches, keyed by normalized team-pair (date-agnostic)
+  const groupPairMap = new Map()
+  for (const match of allMatches || []) {
+    if (match.external_provider) continue
+    if (match.stage !== 'group') continue
+    groupPairMap.set(pairKey(match.home_team_name, match.away_team_name), match)
   }
 
   let linked = 0
   let inserted = 0
+  let skipped = 0
+  let knockoutsPending = 0
   const toInsert = []
 
   for (const item of fixtures) {
     const normalized = normalizeFixture(item)
-    const homeName = normalized.home_team_name.toLowerCase()
-    const awayName = normalized.away_team_name.toLowerCase()
-    const dateKey = normalized.match_date.slice(0, 10)
-    const key = `${homeName}-${awayName}-${dateKey}`
 
-    const existing = existingMap.get(key)
+    // Already linked to a DB row → skip (idempotent)
+    if (linkedExternalIds.has(String(normalized.external_id))) {
+      skipped += 1
+      continue
+    }
+
+    // Knockouts handled separately (link-knockouts action)
+    if (normalized.stage !== 'group') {
+      knockoutsPending += 1
+      continue
+    }
+
+    const key = pairKey(normalized.home_team_name, normalized.away_team_name)
+    const existing = groupPairMap.get(key)
     if (existing) {
       await db.update('matches', `id=eq.${existing.id}`, {
         external_provider: normalized.external_provider,
@@ -252,7 +295,7 @@ async function linkFixturesToExistingMatches() {
         last_synced_at: normalized.last_synced_at,
       })
       linked += 1
-      existingMap.delete(key)
+      groupPairMap.delete(key)
     } else {
       toInsert.push(normalized)
     }
@@ -263,7 +306,78 @@ async function linkFixturesToExistingMatches() {
     inserted = toInsert.length
   }
 
-  return { linked, inserted, total: fixtures.length, remainingManual: existingMap.size }
+  return {
+    linked,
+    inserted,
+    skipped,
+    knockoutsPending,
+    total: fixtures.length,
+    remainingUnlinkedGroup: groupPairMap.size,
+  }
+}
+
+async function linkKnockoutFixtures() {
+  const competition = process.env.FOOTBALL_DATA_COMPETITION || 'WC'
+  const fixtures = await fetchFootballData(`/competitions/${competition}/matches`)
+
+  const allMatches = await db.select(
+    'matches',
+    'select=id,home_team_name,away_team_name,match_date,stage,external_provider,external_id'
+  )
+
+  const linkedExternalIds = new Set(
+    (allMatches || []).filter((m) => m.external_id).map((m) => String(m.external_id))
+  )
+
+  // App knockout stages mapped to API normalized stages (same names via mapStage)
+  const knockoutStages = ['round_of_32', 'round_of_16', 'quarterfinal', 'semifinal', 'third_place', 'final']
+
+  // Group unlinked CSV knockout rows by stage, ordered by date
+  const csvByStage = {}
+  for (const m of allMatches || []) {
+    if (m.external_provider) continue
+    if (!knockoutStages.includes(m.stage)) continue
+    ;(csvByStage[m.stage] ||= []).push(m)
+  }
+  for (const stage of knockoutStages) {
+    if (csvByStage[stage]) csvByStage[stage].sort((a, b) => new Date(a.match_date) - new Date(b.match_date))
+  }
+
+  // Group API knockout fixtures by stage, ordered by date, excluding already-linked
+  const apiByStage = {}
+  for (const item of fixtures) {
+    const normalized = normalizeFixture(item)
+    if (linkedExternalIds.has(String(normalized.external_id))) continue
+    if (!knockoutStages.includes(normalized.stage)) continue
+    ;(apiByStage[normalized.stage] ||= []).push(normalized)
+  }
+  for (const stage of knockoutStages) {
+    if (apiByStage[stage]) apiByStage[stage].sort((a, b) => new Date(a.match_date) - new Date(b.match_date))
+  }
+
+  let linked = 0
+  const perStage = {}
+  for (const stage of knockoutStages) {
+    const csvRows = csvByStage[stage] || []
+    const apiRows = apiByStage[stage] || []
+    const count = Math.min(csvRows.length, apiRows.length)
+    for (let i = 0; i < count; i += 1) {
+      const target = csvRows[i]
+      const src = apiRows[i]
+      await db.update('matches', `id=eq.${target.id}`, {
+        external_provider: src.external_provider,
+        external_id: src.external_id,
+        external_league_id: src.external_league_id,
+        external_season: src.external_season,
+        venue: src.venue,
+        last_synced_at: src.last_synced_at,
+      })
+      linked += 1
+    }
+    perStage[stage] = { csv: csvRows.length, api: apiRows.length, linked: count }
+  }
+
+  return { linked, perStage }
 }
 
 async function syncResults(date) {
@@ -320,6 +434,11 @@ export async function handler(event) {
 
     if (action === 'link-fixtures') {
       const result = await linkFixturesToExistingMatches()
+      return json(200, { ok: true, action, ...result })
+    }
+
+    if (action === 'link-knockouts') {
+      const result = await linkKnockoutFixtures()
       return json(200, { ok: true, action, ...result })
     }
 

@@ -279,7 +279,7 @@ function Admin() {
     }
   }
 
-  const handleFootballSync = async (action: 'link-fixtures' | 'import-fixtures' | 'sync-results' | 'grade-finals') => {
+  const handleFootballSync = async (action: 'link-fixtures' | 'link-knockouts' | 'import-fixtures' | 'sync-results' | 'grade-finals') => {
     setError('')
     setFootballSyncResult('')
     setFootballSyncLoading(action)
@@ -436,7 +436,15 @@ function Admin() {
                 className="inline-flex items-center gap-2 px-5 h-11 rounded-full bg-sunshine text-ink border-2 border-ink font-medium hover:bg-paper transition stamp disabled:opacity-50"
               >
                 {footballSyncLoading === 'link-fixtures' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trophy className="w-4 h-4" />}
-                Link API Fixtures
+                Link Group Fixtures
+              </button>
+              <button
+                onClick={() => handleFootballSync('link-knockouts')}
+                disabled={!!footballSyncLoading}
+                className="inline-flex items-center gap-2 px-5 h-11 rounded-full bg-paper text-ink border-2 border-ink font-medium hover:bg-sunshine transition stamp disabled:opacity-50"
+              >
+                {footballSyncLoading === 'link-knockouts' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trophy className="w-4 h-4" />}
+                Link Knockouts
               </button>
               <button
                 onClick={() => handleFootballSync('import-fixtures')}
@@ -464,7 +472,7 @@ function Admin() {
               </button>
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-              Link API fixtures to existing matches first to preserve predictions, then sync results and grade finals.
+              Link Group Fixtures first to preserve predictions. Link Knockouts when ready to attach bracket games. Then sync results and grade finals.
             </p>
             {footballSyncResult && (
               <pre className="mt-3 text-xs bg-sunshine/20 p-3 rounded-md overflow-x-auto">
