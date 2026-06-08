@@ -226,10 +226,12 @@ async function gradeMatch(match) {
     : null
 
   for (const prediction of predictions) {
-    const points = predictionPoints(prediction.home_score, prediction.away_score, match.home_score, match.away_score)
+    const basePoints = predictionPoints(prediction.home_score, prediction.away_score, match.home_score, match.away_score)
+    const beatAi = aiPoints !== null && basePoints > aiPoints
+    const points = basePoints + (beatAi ? 1 : 0)
     await db.update('predictions', `id=eq.${prediction.id}`, {
       points_earned: points,
-      beat_ai: aiPoints === null ? false : points > aiPoints,
+      beat_ai: beatAi,
       updated_at: new Date().toISOString(),
     })
   }
