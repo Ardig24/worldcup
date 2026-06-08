@@ -101,7 +101,17 @@ async function fetchFootballData(path, params = {}) {
     throw new Error(`football-data request failed: ${response.status} ${text}`)
   }
 
-  const data = text ? JSON.parse(text) : {}
+  let data = {}
+  try {
+    data = text ? JSON.parse(text) : {}
+  } catch {
+    throw new Error(`football-data returned non-JSON response: ${text.slice(0, 200)}`)
+  }
+
+  if (data.message || data.errorCode) {
+    throw new Error(`football-data error ${data.errorCode || ''}: ${data.message || 'unknown'}`)
+  }
+
   return data.matches || []
 }
 
