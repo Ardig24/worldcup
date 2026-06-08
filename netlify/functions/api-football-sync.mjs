@@ -1,10 +1,10 @@
 import { jwtDecode } from 'jwt-decode'
 
 const ADMIN_EMAILS = ['dendritech.io@gmail.com']
-const API_BASE_URL = 'https://v3.football.api-sports.io'
-const PROVIDER = 'api-football'
-const FINAL_STATUSES = new Set(['FT', 'AET', 'PEN'])
-const LIVE_STATUSES = new Set(['1H', 'HT', '2H', 'ET', 'BT', 'P'])
+const API_BASE_URL = 'https://api.football-data.org/v4'
+const PROVIDER = 'football-data'
+const FINAL_STATUSES = new Set(['FINISHED', 'AWARDED'])
+const LIVE_STATUSES = new Set(['IN_PLAY', 'PAUSED'])
 
 function json(statusCode, body) {
   return {
@@ -81,8 +81,8 @@ async function requireAdmin(event) {
   }
 }
 
-async function fetchApiFootball(path, params = {}) {
-  const apiKey = requireEnv('API_FOOTBALL_KEY')
+async function fetchFootballData(path, params = {}) {
+  const apiKey = requireEnv('FOOTBALL_DATA_KEY')
   const url = new URL(`${API_BASE_URL}${path}`)
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') {
@@ -92,67 +92,68 @@ async function fetchApiFootball(path, params = {}) {
 
   const response = await fetch(url, {
     headers: {
-      'x-apisports-key': apiKey,
+      'X-Auth-Token': apiKey,
     },
   })
 
+  const text = await response.text()
   if (!response.ok) {
-    throw new Error(`API-Football request failed: ${response.status} ${response.statusText}`)
+    throw new Error(`football-data request failed: ${response.status} ${text}`)
   }
 
-  const data = await response.json()
-  if (data.errors && Object.keys(data.errors).length > 0) {
-    throw new Error(`API-Football error: ${JSON.stringify(data.errors)}`)
-  }
-  return data.response || []
+  const data = text ? JSON.parse(text) : {}
+  return data.matches || []
 }
 
-function teamCode(name) {
-  const cleaned = String(name || 'TBD').replace(/[^a-z]/gi, '').toUpperCase()
+function teamCode(team) {
+  if (team?.tla) return String(team.tla).toUpperCase().slice(0, 3).padEnd(3, 'X')
+  const cleaned = String(team?.name || 'TBD').replace(/[^a-z]/gi, '').toUpperCase()
   return (cleaned || 'TBD').slice(0, 3).padEnd(3, 'X')
 }
 
-function mapStage(round) {
-  const value = String(round || '').toLowerCase()
-  if (value.includes('round of 16')) return 'round16'
-  if (value.includes('quarter')) return 'quarter'
-  if (value.includes('semi')) return 'semi'
-  if (value.includes('third')) return 'third'
-  if (value.includes('final')) return 'final'
+function mapStage(stage) {
+  const value = String(stage || '').toUpperCase()
+  if (value === 'LAST_16') return 'round16'
+  if (value === 'QUARTER_FINALS') return 'quarter'
+  if (value === 'SEMI_FINALS') return 'semi'
+  if (value === 'THIRD_PLACE') return 'third'
+  if (value === 'FINAL') return 'final'
   return 'group'
 }
 
-function mapStatus(shortStatus) {
-  if (FINAL_STATUSES.has(shortStatus)) return 'final'
-  if (LIVE_STATUSES.has(shortStatus)) return 'live'
+function mapStatus(status) {
+  if (FINAL_STATUSES.has(status)) return 'final'
+  if (LIVE_STATUSES.has(status)) return 'live'
   return 'scheduled'
 }
 
 function normalizeFixture(item) {
-  const fixture = item.fixture || {}
-  const teams = item.teams || {}
-  const goals = item.goals || {}
-  const league = item.league || {}
-  const status = fixture.status || {}
-  const homeName = teams.home?.name || 'TBD'
-  const awayName = teams.away?.name || 'TBD'
+  const home = item.homeTeam || {}
+  const away = item.awayTeam || {}
+  const score = item.score || {}
+  const fullTime = score.fullTime || {}
+  const competition = item.competition || {}
+  const season = item.season || {}
+  const homeName = home.name || 'TBD'
+  const awayName = away.name || 'TBD'
+  const seasonYear = season.startDate ? season.startDate.slice(0, 4) : (process.env.FOOTBALL_DATA_SEASON || '2026')
 
   return {
     external_provider: PROVIDER,
-    external_id: String(fixture.id),
-    external_league_id: String(league.id || process.env.API_FOOTBALL_LEAGUE_ID || '1217'),
-    external_season: String(league.season || process.env.API_FOOTBALL_SEASON || '2026'),
-    home_team_code: teamCode(homeName),
+    external_id: String(item.id),
+    external_league_id: String(competition.code || competition.id || process.env.FOOTBALL_DATA_COMPETITION || 'WC'),
+    external_season: String(seasonYear),
+    home_team_code: teamCode(home),
     home_team_name: homeName,
-    away_team_code: teamCode(awayName),
+    away_team_code: teamCode(away),
     away_team_name: awayName,
-    match_date: fixture.date,
-    venue: fixture.venue?.name || 'TBD',
-    stage: mapStage(league.round),
-    status: mapStatus(status.short),
-    home_score: goals.home ?? null,
-    away_score: goals.away ?? null,
-    minute: status.elapsed ?? null,
+    match_date: item.utcDate,
+    venue: item.venue || 'TBD',
+    stage: mapStage(item.stage),
+    status: mapStatus(item.status),
+    home_score: fullTime.home ?? null,
+    away_score: fullTime.away ?? null,
+    minute: item.minute ?? null,
     last_synced_at: new Date().toISOString(),
   }
 }
@@ -200,9 +201,8 @@ async function gradeMatch(match) {
 }
 
 async function importFixtures() {
-  const league = process.env.API_FOOTBALL_LEAGUE_ID || '1217'
-  const season = process.env.API_FOOTBALL_SEASON || '2026'
-  const fixtures = await fetchApiFootball('/fixtures', { league, season })
+  const competition = process.env.FOOTBALL_DATA_COMPETITION || 'WC'
+  const fixtures = await fetchFootballData(`/competitions/${competition}/matches`)
   const rows = fixtures.map(normalizeFixture)
 
   if (rows.length === 0) return { imported: 0, updated: 0, total: 0 }
@@ -212,9 +212,8 @@ async function importFixtures() {
 }
 
 async function linkFixturesToExistingMatches() {
-  const league = process.env.API_FOOTBALL_LEAGUE_ID || '1217'
-  const season = process.env.API_FOOTBALL_SEASON || '2026'
-  const fixtures = await fetchApiFootball('/fixtures', { league, season })
+  const competition = process.env.FOOTBALL_DATA_COMPETITION || 'WC'
+  const fixtures = await fetchFootballData(`/competitions/${competition}/matches`)
 
   const existingMatches = await db.select(
     'matches',
@@ -268,9 +267,11 @@ async function linkFixturesToExistingMatches() {
 }
 
 async function syncResults(date) {
-  const league = process.env.API_FOOTBALL_LEAGUE_ID || '1217'
-  const season = process.env.API_FOOTBALL_SEASON || '2026'
-  const fixtures = await fetchApiFootball('/fixtures', { league, season, date })
+  const competition = process.env.FOOTBALL_DATA_COMPETITION || 'WC'
+  const fixtures = await fetchFootballData(`/competitions/${competition}/matches`, {
+    dateFrom: date,
+    dateTo: date,
+  })
   const rows = fixtures.map(normalizeFixture)
   let updated = 0
   let finalized = 0
