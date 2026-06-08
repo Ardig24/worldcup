@@ -293,6 +293,7 @@ function Admin() {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
+          'X-Admin-Secret': import.meta.env.VITE_ADMIN_SECRET_CODE || '',
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ action }),

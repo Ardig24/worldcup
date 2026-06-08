@@ -66,7 +66,15 @@ const db = {
     }),
 }
 
-async function requireAdmin(event) {
+function requireAdminSecret(event) {
+  const secret = event.headers['x-admin-secret']
+  const expected = requireEnv('ADMIN_SECRET_CODE')
+  if (secret !== expected) {
+    throw new Error('Invalid admin secret')
+  }
+}
+
+function requireAdmin(event) {
   const authHeader = event.headers.authorization || event.headers.Authorization || ''
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''
   if (!token) throw new Error('Missing authorization token')
@@ -474,7 +482,7 @@ export async function handler(event) {
   }
 
   try {
-    await requireAdmin(event)
+    await requireAdminSecret(event)
 
     const body = event.body ? JSON.parse(event.body) : {}
     const action = body.action
