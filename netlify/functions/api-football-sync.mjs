@@ -392,6 +392,41 @@ async function linkKnockoutFixtures() {
   return { linked, perStage }
 }
 
+async function syncSchedule() {
+  const competition = process.env.FOOTBALL_DATA_COMPETITION || 'WC'
+  const fixtures = await fetchFootballData(`/competitions/${competition}/matches`)
+
+  const allMatches = await db.select('matches', 'select=id,external_id,external_provider')
+  const byExternalId = new Map()
+  for (const m of allMatches || []) {
+    if (m.external_id) byExternalId.set(String(m.external_id), m)
+  }
+
+  let updated = 0
+  let unmatched = 0
+  for (const item of fixtures) {
+    const normalized = normalizeFixture(item)
+    const target = byExternalId.get(String(normalized.external_id))
+    if (!target) {
+      unmatched += 1
+      continue
+    }
+
+    const patch = {
+      match_date: normalized.match_date,
+      last_synced_at: normalized.last_synced_at,
+    }
+    if (normalized.venue && normalized.venue !== 'TBD') {
+      patch.venue = normalized.venue
+    }
+
+    await db.update('matches', `id=eq.${target.id}`, patch)
+    updated += 1
+  }
+
+  return { updated, unmatched, total: fixtures.length }
+}
+
 async function syncResults(date) {
   const competition = process.env.FOOTBALL_DATA_COMPETITION || 'WC'
   const fixtures = await fetchFootballData(`/competitions/${competition}/matches`, {
@@ -451,6 +486,11 @@ export async function handler(event) {
 
     if (action === 'link-knockouts') {
       const result = await linkKnockoutFixtures()
+      return json(200, { ok: true, action, ...result })
+    }
+
+    if (action === 'sync-schedule') {
+      const result = await syncSchedule()
       return json(200, { ok: true, action, ...result })
     }
 

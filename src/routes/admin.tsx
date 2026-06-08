@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { PageShell, Eyebrow } from '@/components/AppShell'
-import { Plus, Loader2, Trash2, Upload, Brain, Megaphone, RefreshCw, Trophy } from 'lucide-react'
+import { Plus, Loader2, Trash2, Upload, Brain, Megaphone, RefreshCw, Trophy, Clock } from 'lucide-react'
 import { generateAIPredictionsForMatches } from '@/lib/openrouter'
 import { useAuth } from '@/hooks/use-auth'
 
@@ -279,7 +279,7 @@ function Admin() {
     }
   }
 
-  const handleFootballSync = async (action: 'link-fixtures' | 'link-knockouts' | 'import-fixtures' | 'sync-results' | 'grade-finals') => {
+  const handleFootballSync = async (action: 'link-fixtures' | 'link-knockouts' | 'sync-schedule' | 'import-fixtures' | 'sync-results' | 'grade-finals') => {
     setError('')
     setFootballSyncResult('')
     setFootballSyncLoading(action)
@@ -445,6 +445,14 @@ function Admin() {
               >
                 {footballSyncLoading === 'link-knockouts' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trophy className="w-4 h-4" />}
                 Link Knockouts
+              </button>
+              <button
+                onClick={() => handleFootballSync('sync-schedule')}
+                disabled={!!footballSyncLoading}
+                className="inline-flex items-center gap-2 px-5 h-11 rounded-full bg-paper text-ink border-2 border-ink font-medium hover:bg-sunshine transition stamp disabled:opacity-50"
+              >
+                {footballSyncLoading === 'sync-schedule' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Clock className="w-4 h-4" />}
+                Sync Schedule
               </button>
               <button
                 onClick={() => handleFootballSync('import-fixtures')}
