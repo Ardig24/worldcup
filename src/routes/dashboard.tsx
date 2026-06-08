@@ -213,7 +213,7 @@ function Dashboard() {
   const beatAICount = userPredictions.filter((p) => p.beat_ai).length;
   const totalFinals = matches.filter((m) => m.status === 'final').length;
   const accuracy = finishedPredictions.length > 0
-    ? Math.round((finishedPredictions.reduce((s, p) => s + (p.points_earned || 0), 0) / (finishedPredictions.length * 3)) * 100)
+    ? Math.round((finishedPredictions.reduce((s, p) => s + (p.points_earned || 0), 0) / (finishedPredictions.length * 4)) * 100)
     : 0;
 
   const stats = [

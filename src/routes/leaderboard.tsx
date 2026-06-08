@@ -37,7 +37,7 @@ function buildRows(data: LeaderboardUser[], userId?: string): Row[] {
     c: u.country_code || '🌍',
     avatarUrl: u.avatar_url,
     p: u.total_points,
-    acc: u.total_predictions > 0 ? Math.round((u.total_points / (u.total_predictions * 3)) * 100) : 0,
+    acc: u.total_predictions > 0 ? Math.round((u.total_points / (u.total_predictions * 4)) * 100) : 0,
     exact: u.exact_scores,
     trend: 'flat' as const,
     you: userId === u.id,
