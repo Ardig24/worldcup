@@ -441,24 +441,44 @@ async function syncResults(date) {
     dateFrom: date,
     dateTo: date,
   })
-  const rows = fixtures.map(normalizeFixture)
+
+  const allMatches = await db.select('matches', 'select=id,external_id,external_provider')
+  const byExternalId = new Map()
+  for (const m of allMatches || []) {
+    if (m.external_id) byExternalId.set(String(m.external_id), m)
+  }
+
   let updated = 0
   let finalized = 0
   let graded = 0
+  let unmatched = 0
 
-  for (const row of rows) {
-    const result = await db.upsert('matches', row, 'external_provider,external_id')
-    const saved = Array.isArray(result) ? result[0] : result
+  for (const item of fixtures) {
+    const normalized = normalizeFixture(item)
+    const target = byExternalId.get(String(normalized.external_id))
+    if (!target) {
+      unmatched += 1
+      continue
+    }
+
+    const patch = {
+      home_score: normalized.home_score,
+      away_score: normalized.away_score,
+      status: normalized.status,
+      last_synced_at: normalized.last_synced_at,
+    }
+
+    await db.update('matches', `id=eq.${target.id}`, patch)
     updated += 1
 
-    if (saved && saved.status === 'final') {
+    if (patch.status === 'final') {
       finalized += 1
-      const gradeResult = await gradeMatch(saved)
+      const gradeResult = await gradeMatch({ ...target, ...patch })
       graded += gradeResult.graded
     }
   }
 
-  return { updated, finalized, graded, total: rows.length, date }
+  return { updated, finalized, graded, unmatched, total: fixtures.length, date }
 }
 
 async function gradeFinalMatches() {
