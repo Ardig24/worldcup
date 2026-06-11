@@ -183,26 +183,6 @@ function normalizeFixture(item) {
   const awayName = away.name || 'TBD'
   const seasonYear = season.startDate ? season.startDate.slice(0, 4) : (process.env.FOOTBALL_DATA_SEASON || '2026')
 
-  const status = mapStatus(item.status)
-  let homeScore = fullTime.home ?? null
-  let awayScore = fullTime.away ?? null
-
-  // If fullTime scores are null, try other score fields
-  if (homeScore === null || awayScore === null) {
-    const halfTime = score.halfTime || {}
-    const extraTime = score.extraTime || {}
-    const penalties = score.penalties || {}
-
-    homeScore = homeScore ?? halfTime.home ?? extraTime.home ?? penalties.home ?? null
-    awayScore = awayScore ?? halfTime.away ?? extraTime.away ?? penalties.away ?? null
-  }
-
-  // For awarded/walkover matches, default to 0-0 if status is final but scores are still null
-  if (status === 'final' && (homeScore === null || awayScore === null)) {
-    homeScore = 0
-    awayScore = 0
-  }
-
   return {
     external_provider: PROVIDER,
     external_id: String(item.id),
@@ -215,9 +195,9 @@ function normalizeFixture(item) {
     match_date: item.utcDate,
     venue: item.venue || 'TBD',
     stage: mapStage(item.stage),
-    status,
-    home_score: homeScore,
-    away_score: awayScore,
+    status: mapStatus(item.status),
+    home_score: fullTime.home ?? null,
+    away_score: fullTime.away ?? null,
     minute: item.minute ?? null,
     last_synced_at: new Date().toISOString(),
   }
@@ -461,10 +441,6 @@ async function syncResults(date) {
     dateFrom: date,
     dateTo: date,
   })
-
-  // Log raw API data for debugging
-  console.log('API fixtures for date:', date)
-  console.log('Raw fixtures:', JSON.stringify(fixtures, null, 2))
 
   const allMatches = await db.select('matches', 'select=id,external_id,external_provider')
   const byExternalId = new Map()
