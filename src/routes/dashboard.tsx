@@ -77,6 +77,7 @@ type ResultPrediction = {
 };
 
 type FilterMode = 'all' | 'date' | 'group' | 'stage';
+type DashboardTab = 'open' | 'recent';
 
 function Dashboard() {
   const { user } = useAuth();
@@ -85,6 +86,7 @@ function Dashboard() {
   const [predictions, setPredictions] = useState<Record<string, DBPrediction>>({});
   const [resultPredictions, setResultPredictions] = useState<Record<string, ResultPrediction[]>>({});
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<DashboardTab>('open');
   const [filterMode, setFilterMode] = useState<FilterMode>('all');
   const [filterValue, setFilterValue] = useState<string>('');
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -304,6 +306,15 @@ function Dashboard() {
           ))}
         </div>
 
+        <div className="mt-8 flex flex-wrap gap-2 border-b-2 border-ink/10 pb-4">
+          <FilterTab active={activeTab === 'open'} onClick={() => setActiveTab('open')}>
+            Open Matches
+          </FilterTab>
+          <FilterTab active={activeTab === 'recent'} onClick={() => setActiveTab('recent')}>
+            Recent Picks
+          </FilterTab>
+        </div>
+
         {/* Live */}
         {matches.filter(m => m.status === 'live').length > 0 && (
           <div className="mt-12">
@@ -317,7 +328,7 @@ function Dashboard() {
         )}
 
         {/* Open predictions */}
-        <div className="mt-12">
+        {activeTab === 'open' && <div className="mt-12">
           <SectionHeader eyebrow="Open for predictions" title="Up next" />
 
           {/* Filter Tabs */}
@@ -417,10 +428,10 @@ function Dashboard() {
               ));
             })()}
           </div>
-        </div>
+        </div>}
 
         {/* Recent results */}
-        <div className="mt-12">
+        {activeTab === 'recent' && <div className="mt-12">
           <SectionHeader eyebrow="Closed book" title="Your recent picks" />
           <div className="mt-5 space-y-3">
             {matches.filter(m => m.status === 'final').length === 0 ? (
@@ -433,7 +444,7 @@ function Dashboard() {
               ))
             )}
           </div>
-        </div>
+        </div>}
       </div>
 
       <AuthModal
