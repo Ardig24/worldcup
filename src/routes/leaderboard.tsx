@@ -37,7 +37,7 @@ function buildRows(data: LeaderboardUser[], userId?: string): Row[] {
     c: u.country_code || '🌍',
     avatarUrl: u.avatar_url,
     p: u.total_points,
-    acc: u.total_predictions > 0 ? Math.round((u.total_points / (u.total_predictions * 4)) * 100) : 0,
+    acc: u.total_predictions > 0 ? Math.round((u.total_points / (u.total_predictions * 6)) * 100) : 0,
     exact: u.exact_scores,
     trend: 'flat' as const,
     you: userId === u.id,
@@ -77,7 +77,7 @@ function Leaderboard() {
           avatar_url: u.avatar_url,
           total_points: totalPoints,
           total_predictions: preds.length,
-          exact_scores: preds.filter((p: any) => p.points_earned >= 3).length,
+          exact_scores: preds.filter((p: any) => p.points_earned >= 5).length,
         };
       }).sort((a, b) => b.total_points - a.total_points);
 

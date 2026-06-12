@@ -204,11 +204,17 @@ function normalizeFixture(item) {
 }
 
 function predictionPoints(predictedHome, predictedAway, actualHome, actualAway) {
-  if (predictedHome === actualHome && predictedAway === actualAway) return 3
+  if (predictedHome === actualHome && predictedAway === actualAway) return 5
 
   const predictedOutcome = Math.sign(predictedHome - predictedAway)
   const actualOutcome = Math.sign(actualHome - actualAway)
-  return predictedOutcome === actualOutcome ? 1 : 0
+  if (predictedOutcome !== actualOutcome) return 0
+
+  const predictedGoalDiff = predictedHome - predictedAway
+  const actualGoalDiff = actualHome - actualAway
+  if (predictedGoalDiff === actualGoalDiff) return 3
+
+  return 2
 }
 
 async function gradeMatch(match) {

@@ -463,8 +463,9 @@ function Stepper({ value, onChange }: { value: number; onChange: (n: number) => 
 /* ───── SCORING ───── */
 function ScoringRules() {
   const rows = [
-    { p: "+3", t: "Exact score", d: "Nail home and away — pure clairvoyance." },
-    { p: "+1", t: "Right outcome", d: "Wrong score, right winner (or draw)." },
+    { p: "+5", t: "Exact score", d: "Nail home and away — pure clairvoyance." },
+    { p: "+3", t: "Goal difference", d: "Wrong score, but the exact goal margin is correct." },
+    { p: "+2", t: "Right outcome", d: "Wrong score and margin, but right winner (or draw)." },
     { p: " 0", t: "Wrong outcome", d: "Better luck next match." },
     { p: "+1", t: "Beat the AI", d: "Outscore the model on a single match.", bonus: true },
   ];

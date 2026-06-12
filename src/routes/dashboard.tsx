@@ -264,11 +264,11 @@ function Dashboard() {
   const userPredictions = Object.values(predictions);
   const totalPoints = userPredictions.reduce((sum, p) => sum + (p.points_earned || 0), 0);
   const finishedPredictions = userPredictions.filter((p) => p.points_earned !== null && p.points_earned !== undefined);
-  const exactScores = finishedPredictions.filter((p) => p.points_earned >= 3).length;
+  const exactScores = finishedPredictions.filter((p) => p.points_earned >= 5).length;
   const beatAICount = userPredictions.filter((p) => p.beat_ai).length;
   const totalFinals = matches.filter((m) => m.status === 'final').length;
   const accuracy = finishedPredictions.length > 0
-    ? Math.round((finishedPredictions.reduce((s, p) => s + (p.points_earned || 0), 0) / (finishedPredictions.length * 4)) * 100)
+    ? Math.round((finishedPredictions.reduce((s, p) => s + (p.points_earned || 0), 0) / (finishedPredictions.length * 6)) * 100)
     : 0;
 
   const stats = [
