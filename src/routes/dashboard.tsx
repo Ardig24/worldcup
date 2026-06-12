@@ -57,10 +57,23 @@ type DBMatch = {
 type DBPrediction = {
   id: string;
   match_id: string;
+  user_id: string;
   home_score: number;
   away_score: number;
   points_earned: number;
   beat_ai: boolean;
+};
+
+type ResultPrediction = {
+  id: string;
+  userId: string;
+  username: string;
+  countryCode: string | null;
+  homeScore: number;
+  awayScore: number;
+  points: number;
+  beatAi: boolean;
+  isYou: boolean;
 };
 
 type FilterMode = 'all' | 'date' | 'group' | 'stage';
@@ -70,6 +83,7 @@ function Dashboard() {
   const supabase = createClient();
   const [matches, setMatches] = useState<Match[]>([]);
   const [predictions, setPredictions] = useState<Record<string, DBPrediction>>({});
+  const [resultPredictions, setResultPredictions] = useState<Record<string, ResultPrediction[]>>({});
   const [loading, setLoading] = useState(true);
   const [filterMode, setFilterMode] = useState<FilterMode>('all');
   const [filterValue, setFilterValue] = useState<string>('');
@@ -148,6 +162,45 @@ function Dashboard() {
         };
       }) || [];
 
+      const finalMatchIds = formattedMatches.filter((m) => m.status === 'final').map((m) => m.id);
+      const resultPredictionsMap: Record<string, ResultPrediction[]> = {};
+
+      if (finalMatchIds.length > 0) {
+        const { data: finishedPredictionsData } = await supabase
+          .from('predictions')
+          .select('id, user_id, match_id, home_score, away_score, points_earned, beat_ai')
+          .in('match_id', finalMatchIds);
+
+        const userIds = Array.from(new Set((finishedPredictionsData || []).map((p: any) => p.user_id)));
+        const { data: usersData } = await supabase
+          .from('users')
+          .select('id, username, country_code')
+          .in('id', userIds.length > 0 ? userIds : ['00000000-0000-0000-0000-000000000000']);
+
+        const usersMap = new Map((usersData || []).map((u: any) => [u.id, u]));
+
+        (finishedPredictionsData || []).forEach((p: any) => {
+          const profile = usersMap.get(p.user_id);
+          const item: ResultPrediction = {
+            id: p.id,
+            userId: p.user_id,
+            username: profile?.username || `user_${String(p.user_id).slice(0, 6)}`,
+            countryCode: profile?.country_code || null,
+            homeScore: p.home_score,
+            awayScore: p.away_score,
+            points: p.points_earned || 0,
+            beatAi: !!p.beat_ai,
+            isYou: p.user_id === user?.id,
+          };
+          resultPredictionsMap[p.match_id] = [...(resultPredictionsMap[p.match_id] || []), item];
+        });
+
+        Object.keys(resultPredictionsMap).forEach((matchId) => {
+          resultPredictionsMap[matchId].sort((a, b) => b.points - a.points || a.username.localeCompare(b.username));
+        });
+      }
+
+      setResultPredictions(resultPredictionsMap);
       setMatches(formattedMatches);
     } catch (error) {
       console.error('Error fetching matches:', error);
@@ -376,7 +429,7 @@ function Dashboard() {
               </div>
             ) : (
               matches.filter(m => m.status === 'final').map((m) => (
-                <ResultRow key={m.id} m={m} />
+                <ResultRow key={m.id} m={m} predictions={resultPredictions[m.id] || []} />
               ))
             )}
           </div>
@@ -584,22 +637,77 @@ function NumPicker({ v, on, disabled }: { v: number; on: (n: number) => void; di
   );
 }
 
-function ResultRow({ m }: { m: Match }) {
+function ResultRow({ m, predictions }: { m: Match; predictions: ResultPrediction[] }) {
+  const [expanded, setExpanded] = useState(false);
   const won = (m.pts ?? 0) >= 3;
+  const yourPrediction = predictions.find((p) => p.isYou);
   return (
-    <div className="bg-chalk border border-ink/20 rounded-md p-4 flex items-center justify-between gap-4">
-      <div className="flex items-center gap-3 min-w-0">
-        <Flag code={m.home.code} size="sm" />
-        <div className="font-medium truncate">{m.home.name} <span className="text-muted-foreground">vs</span> {m.away.name}</div>
-        <Flag code={m.away.code} size="sm" />
+    <div className="bg-chalk border border-ink/20 rounded-md overflow-hidden">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full p-4 flex items-center justify-between gap-4 text-left hover:bg-secondary/40 transition"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <ChevronRight className={`w-4 h-4 shrink-0 transition ${expanded ? 'rotate-90' : ''}`} />
+          <Flag code={m.home.code} size="sm" />
+          <div className="font-medium truncate">{m.home.name} <span className="text-muted-foreground">vs</span> {m.away.name}</div>
+          <Flag code={m.away.code} size="sm" />
+        </div>
+        <div className="hidden sm:flex items-center gap-6 text-xs font-mono-num uppercase tracking-widest text-muted-foreground">
+          <span>Final <span className="font-score text-base text-foreground">{m.finalScore ? `${m.finalScore[0]}-${m.finalScore[1]}` : '—'}</span></span>
+          <span>You <span className="font-score text-base text-foreground">{m.yourScore ? `${m.yourScore[0]}-${m.yourScore[1]}` : '—'}</span></span>
+          <span>AI <span className="font-score text-base text-foreground">{m.ai[0]}-{m.ai[1]}</span></span>
+        </div>
+        <div className={`px-3 h-9 inline-flex items-center rounded-full font-score text-2xl ${won ? "bg-pitch-deep text-paper" : "bg-secondary text-foreground"}`}>
+          +{m.pts ?? 0}
+        </div>
+      </button>
+
+      {expanded && (
+        <div className="border-t border-ink/10 p-4">
+          <div className="grid md:grid-cols-4 gap-3">
+            <div className="rounded-md border border-ink/10 bg-paper p-3">
+              <div className="text-[10px] font-mono-num uppercase tracking-[0.2em] text-muted-foreground">Final result</div>
+              <div className="mt-1 font-score text-4xl">{m.finalScore ? `${m.finalScore[0]}-${m.finalScore[1]}` : '—'}</div>
+            </div>
+            <div className="rounded-md border border-ink/10 bg-paper p-3">
+              <div className="text-[10px] font-mono-num uppercase tracking-[0.2em] text-muted-foreground">Your pick</div>
+              <div className="mt-1 font-score text-4xl">{m.yourScore ? `${m.yourScore[0]}-${m.yourScore[1]}` : '—'}</div>
+            </div>
+            <div className="rounded-md border border-ink/10 bg-paper p-3">
+              <div className="text-[10px] font-mono-num uppercase tracking-[0.2em] text-muted-foreground">AI pick</div>
+              <div className="mt-1 font-score text-4xl">{m.ai[0]}-{m.ai[1]}</div>
+            </div>
+            <div className="rounded-md border border-ink/10 bg-paper p-3">
+              <div className="text-[10px] font-mono-num uppercase tracking-[0.2em] text-muted-foreground">Your points</div>
+              <div className="mt-1 font-score text-4xl">{yourPrediction ? `+${yourPrediction.points}` : '—'}</div>
+              {yourPrediction?.beatAi && <div className="mt-1 text-xs text-pitch-deep font-medium">Beat AI bonus</div>}
+            </div>
+          </div>
+
+          <div className="mt-5">
+            <div className="text-[10px] font-mono-num uppercase tracking-[0.2em] text-muted-foreground">All predictions</div>
+            <div className="mt-2 divide-y divide-ink/10 rounded-md border border-ink/10 bg-paper overflow-hidden">
+              {predictions.length === 0 ? (
+                <div className="p-4 text-sm text-muted-foreground">No predictions for this match.</div>
+              ) : (
+                predictions.map((p) => (
+                  <div key={p.id} className={`grid grid-cols-12 gap-2 items-center px-3 py-2 text-sm ${p.isYou ? 'bg-sunshine/30' : ''}`}>
+                    <div className="col-span-6 flex items-center gap-2 min-w-0">
+                      <Flag code={p.countryCode || '🌍'} size="sm" />
+                      <span className="truncate font-medium">{p.username}</span>
+                      {p.isYou && <span className="px-1.5 py-0.5 rounded bg-ink text-paper text-[9px] font-mono-num uppercase tracking-widest">you</span>}
+                    </div>
+                    <div className="col-span-2 font-score text-xl text-center">{p.homeScore}-{p.awayScore}</div>
+                    <div className="col-span-2 text-center text-xs text-muted-foreground">{p.beatAi ? 'Beat AI' : ''}</div>
+                    <div className="col-span-2 text-right font-score text-2xl">+{p.points}</div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       </div>
-      <div className="hidden sm:flex items-center gap-6 text-xs font-mono-num uppercase tracking-widest text-muted-foreground">
-        <span>You <span className="font-score text-base text-foreground">{m.yourScore![0]}-{m.yourScore![1]}</span></span>
-        <span>Final <span className="font-score text-base text-foreground">{m.finalScore![0]}-{m.finalScore![1]}</span></span>
-      </div>
-      <div className={`px-3 h-9 inline-flex items-center rounded-full font-score text-2xl ${won ? "bg-pitch-deep text-paper" : "bg-secondary text-foreground"}`}>
-        +{m.pts}
-      </div>
-    </div>
   );
 }
