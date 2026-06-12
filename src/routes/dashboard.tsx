@@ -485,19 +485,19 @@ function Dashboard() {
       />
 
       {scoringModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-4">
           <button className="absolute inset-0 bg-ink/60" onClick={() => setScoringModalOpen(false)} />
-          <div className="relative bg-paper border-2 border-ink rounded-md max-w-2xl w-full p-6 shadow-xl">
+          <div className="relative bg-paper border-2 border-ink rounded-md max-w-2xl w-full max-h-[90vh] overflow-y-auto p-4 md:p-6 shadow-xl">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <Eyebrow tone="tomato">Rulebook</Eyebrow>
-                <h2 className="mt-2 font-display font-black text-3xl">Scoring system</h2>
+                <h2 className="mt-2 font-display font-black text-2xl md:text-3xl">Scoring system</h2>
               </div>
-              <button onClick={() => setScoringModalOpen(false)} className="px-3 h-8 rounded-full border-2 border-ink text-sm hover:bg-sunshine transition">
+              <button onClick={() => setScoringModalOpen(false)} className="shrink-0 px-3 h-8 rounded-full border-2 border-ink text-sm hover:bg-sunshine transition">
                 Close
               </button>
             </div>
-            <div className="mt-5 divide-y divide-ink/10 border border-ink/10 rounded-md overflow-hidden">
+            <div className="mt-4 divide-y divide-ink/10 border border-ink/10 rounded-md overflow-hidden">
               {[
                 ['Exact score', 'Both home and away goals are guessed perfectly.', '5 points'],
                 ['Goal difference', 'Wrong score, but the exact goal margin is correct.', '3 points'],
@@ -505,14 +505,14 @@ function Dashboard() {
                 ['Incorrect', 'Wrong winner or outcome completely.', '0 points'],
                 ['Beat the AI', 'Your base points are higher than the AI prediction.', '+1 bonus'],
               ].map(([title, description, points]) => (
-                <div key={title} className="grid md:grid-cols-12 gap-3 p-4 bg-chalk">
-                  <div className="md:col-span-3 font-display font-bold">{title}</div>
-                  <div className="md:col-span-6 text-sm text-muted-foreground">{description}</div>
-                  <div className="md:col-span-3 font-score text-2xl md:text-right">{points}</div>
+                <div key={title} className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-3 p-3 md:p-4 bg-chalk">
+                  <div className="md:col-span-3 font-display font-bold text-sm md:text-base">{title}</div>
+                  <div className="md:col-span-6 text-xs md:text-sm text-muted-foreground">{description}</div>
+                  <div className="md:col-span-3 font-score text-xl md:text-2xl md:text-right">{points}</div>
                 </div>
               ))}
             </div>
-            <p className="mt-4 text-sm text-muted-foreground">Maximum score per match is 6 points: 5 for exact score plus 1 beat-AI bonus.</p>
+            <p className="mt-3 text-xs md:text-sm text-muted-foreground">Maximum score per match is 6 points: 5 for exact score plus 1 beat-AI bonus.</p>
           </div>
         </div>
       )}
