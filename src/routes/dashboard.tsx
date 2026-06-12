@@ -79,6 +79,27 @@ type ResultPrediction = {
 type FilterMode = 'all' | 'date' | 'group' | 'stage';
 type DashboardTab = 'open' | 'recent';
 
+function calculateBasePoints(predictedHome: number, predictedAway: number, actualHome: number, actualAway: number) {
+  if (predictedHome === actualHome && predictedAway === actualAway) return 5;
+
+  const predictedOutcome = Math.sign(predictedHome - predictedAway);
+  const actualOutcome = Math.sign(actualHome - actualAway);
+  if (predictedOutcome !== actualOutcome) return 0;
+
+  const predictedGoalDiff = predictedHome - predictedAway;
+  const actualGoalDiff = actualHome - actualAway;
+  if (predictedGoalDiff === actualGoalDiff) return 3;
+
+  return 2;
+}
+
+function pointLabel(points: number) {
+  if (points === 5) return 'Exact score';
+  if (points === 3) return 'Goal difference';
+  if (points === 2) return 'Right outcome';
+  return 'Wrong outcome';
+}
+
 function Dashboard() {
   const { user } = useAuth();
   const supabase = createClient();
@@ -90,6 +111,7 @@ function Dashboard() {
   const [filterMode, setFilterMode] = useState<FilterMode>('all');
   const [filterValue, setFilterValue] = useState<string>('');
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [scoringModalOpen, setScoringModalOpen] = useState(false);
 
   useEffect(() => {
     fetchMatches();
@@ -306,13 +328,21 @@ function Dashboard() {
           ))}
         </div>
 
-        <div className="mt-8 flex flex-wrap gap-2 border-b-2 border-ink/10 pb-4">
-          <FilterTab active={activeTab === 'open'} onClick={() => setActiveTab('open')}>
-            Open Matches
-          </FilterTab>
-          <FilterTab active={activeTab === 'recent'} onClick={() => setActiveTab('recent')}>
-            Recent Picks
-          </FilterTab>
+        <div className="mt-8 flex items-center justify-between flex-wrap gap-3 border-b-2 border-ink/10 pb-4">
+          <div className="flex flex-wrap gap-2">
+            <FilterTab active={activeTab === 'open'} onClick={() => setActiveTab('open')}>
+              Open Matches
+            </FilterTab>
+            <FilterTab active={activeTab === 'recent'} onClick={() => setActiveTab('recent')}>
+              Recent Picks
+            </FilterTab>
+          </div>
+          <button
+            onClick={() => setScoringModalOpen(true)}
+            className="px-4 h-9 rounded-full border-2 border-ink text-sm font-medium hover:bg-sunshine transition"
+          >
+            Scoring System
+          </button>
         </div>
 
         {/* Live */}
@@ -453,6 +483,39 @@ function Dashboard() {
         title="Sign in to predict"
         description="Create a free account to lock in predictions and earn points."
       />
+
+      {scoringModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <button className="absolute inset-0 bg-ink/60" onClick={() => setScoringModalOpen(false)} />
+          <div className="relative bg-paper border-2 border-ink rounded-md max-w-2xl w-full p-6 shadow-xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <Eyebrow tone="tomato">Rulebook</Eyebrow>
+                <h2 className="mt-2 font-display font-black text-3xl">Scoring system</h2>
+              </div>
+              <button onClick={() => setScoringModalOpen(false)} className="px-3 h-8 rounded-full border-2 border-ink text-sm hover:bg-sunshine transition">
+                Close
+              </button>
+            </div>
+            <div className="mt-5 divide-y divide-ink/10 border border-ink/10 rounded-md overflow-hidden">
+              {[
+                ['Exact score', 'Both home and away goals are guessed perfectly.', '5 points'],
+                ['Goal difference', 'Wrong score, but the exact goal margin is correct.', '3 points'],
+                ['Match outcome', 'Wrong score and wrong margin, but right winner or draw.', '2 points'],
+                ['Incorrect', 'Wrong winner or outcome completely.', '0 points'],
+                ['Beat the AI', 'Your base points are higher than the AI prediction.', '+1 bonus'],
+              ].map(([title, description, points]) => (
+                <div key={title} className="grid md:grid-cols-12 gap-3 p-4 bg-chalk">
+                  <div className="md:col-span-3 font-display font-bold">{title}</div>
+                  <div className="md:col-span-6 text-sm text-muted-foreground">{description}</div>
+                  <div className="md:col-span-3 font-score text-2xl md:text-right">{points}</div>
+                </div>
+              ))}
+            </div>
+            <p className="mt-4 text-sm text-muted-foreground">Maximum score per match is 6 points: 5 for exact score plus 1 beat-AI bonus.</p>
+          </div>
+        </div>
+      )}
     </PageShell>
   );
 }
@@ -652,6 +715,9 @@ function ResultRow({ m, predictions }: { m: Match; predictions: ResultPrediction
   const [expanded, setExpanded] = useState(false);
   const won = (m.pts ?? 0) >= 3;
   const yourPrediction = predictions.find((p) => p.isYou);
+  const yourBasePoints = yourPrediction && m.finalScore
+    ? calculateBasePoints(yourPrediction.homeScore, yourPrediction.awayScore, m.finalScore[0], m.finalScore[1])
+    : null;
   return (
     <div className="bg-chalk border border-ink/20 rounded-md overflow-hidden">
       <button
@@ -692,7 +758,11 @@ function ResultRow({ m, predictions }: { m: Match; predictions: ResultPrediction
             <div className="rounded-md border border-ink/10 bg-paper p-3">
               <div className="text-[10px] font-mono-num uppercase tracking-[0.2em] text-muted-foreground">Your points</div>
               <div className="mt-1 font-score text-4xl">{yourPrediction ? `+${yourPrediction.points}` : '—'}</div>
-              {yourPrediction?.beatAi && <div className="mt-1 text-xs text-pitch-deep font-medium">Beat AI bonus</div>}
+              {yourBasePoints !== null && (
+                <div className="mt-1 text-xs text-muted-foreground">
+                  {pointLabel(yourBasePoints)}: {yourBasePoints} {yourPrediction?.beatAi ? '+ 1 bonus' : ''}
+                </div>
+              )}
             </div>
           </div>
 
@@ -702,18 +772,25 @@ function ResultRow({ m, predictions }: { m: Match; predictions: ResultPrediction
               {predictions.length === 0 ? (
                 <div className="p-4 text-sm text-muted-foreground">No predictions for this match.</div>
               ) : (
-                predictions.map((p) => (
-                  <div key={p.id} className={`grid grid-cols-12 gap-2 items-center px-3 py-2 text-sm ${p.isYou ? 'bg-sunshine/30' : ''}`}>
-                    <div className="col-span-6 flex items-center gap-2 min-w-0">
-                      <Flag code={p.countryCode || '🌍'} size="sm" />
-                      <span className="truncate font-medium">{p.username}</span>
-                      {p.isYou && <span className="px-1.5 py-0.5 rounded bg-ink text-paper text-[9px] font-mono-num uppercase tracking-widest">you</span>}
+                predictions.map((p) => {
+                  const basePoints = m.finalScore
+                    ? calculateBasePoints(p.homeScore, p.awayScore, m.finalScore[0], m.finalScore[1])
+                    : 0;
+                  return (
+                    <div key={p.id} className={`grid grid-cols-12 gap-2 items-center px-3 py-2 text-sm ${p.isYou ? 'bg-sunshine/30' : ''}`}>
+                      <div className="col-span-5 flex items-center gap-2 min-w-0">
+                        <Flag code={p.countryCode || '🌍'} size="sm" />
+                        <span className="truncate font-medium">{p.username}</span>
+                        {p.isYou && <span className="px-1.5 py-0.5 rounded bg-ink text-paper text-[9px] font-mono-num uppercase tracking-widest">you</span>}
+                      </div>
+                      <div className="col-span-2 font-score text-xl text-center">{p.homeScore}-{p.awayScore}</div>
+                      <div className="col-span-3 text-xs text-muted-foreground">
+                        {pointLabel(basePoints)}{p.beatAi ? ' + bonus' : ''}
+                      </div>
+                      <div className="col-span-2 text-right font-score text-2xl">+{p.points}</div>
                     </div>
-                    <div className="col-span-2 font-score text-xl text-center">{p.homeScore}-{p.awayScore}</div>
-                    <div className="col-span-2 text-center text-xs text-muted-foreground">{p.beatAi ? 'Beat AI' : ''}</div>
-                    <div className="col-span-2 text-right font-score text-2xl">+{p.points}</div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
